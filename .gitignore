@@ -3,4 +3,6 @@
 # vim swap files
 *.swp
 # executable
-part_libere
+*.a
+*.o
+*.d
