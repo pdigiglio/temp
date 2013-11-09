@@ -1,2 +1,6 @@
 # backup files
 *~
+# vim swap files
+*.swp
+# executable
+part_libere

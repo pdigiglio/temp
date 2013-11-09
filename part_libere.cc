@@ -1,7 +1,6 @@
 #include "part_libere.h"
 
-/* definisce le macro contenenti i valori massimi dei tipi */
-#include <limits.h>
+#include <math.h>
 
 /*
  * ------------------------------------------------------------------
@@ -17,6 +16,31 @@ Sistema::Sistema (void) {
 		*( j + d ) = (unsigned short) rand();
 //		printf( "%hu\t%hu\n", d, *( j + d ) );
 	}
+
+	/* lato minimo dei cubi sui vertici dei quali dispongo le sfere */
+	float l = 4 * S / sqrt(3);
+	/* calcolo le particelle che entrano nel cubo */
+	unsigned short int n = (unsigned short) L / l, m = n;
+	if ( (float) L / l - n ) {
+		m --;
+		if ( (float) L / l - n < 2 * S )
+			n --;
+	}
+
+	/* controllo che il numero di particelle non ecceda la capienza */
+	if ( (unsigned) N > n * m ) {
+		fprintf( stderr, "[Fatale]"
+				" Superata capienza massima sistema %hu\n",
+				n * m );
+		exit(EXIT_FAILURE);
+	}
+
+	/* calcolo il rapporto (intero) tra la capienza e le particelle */
+	unsigned short step = n * m / N;
+	printf( "Rapporto capienza (%u)/particelle (%hu): %hu\n",
+			(unsigned) n * m, (unsigned short) N, step );
+
+	printf( "Siti 1: %hu, Siti 2: %hu\n", n, m );
 
 	/* assegno le velocità */
 	float tmp; /* modulo delle velocità */
