@@ -30,6 +30,9 @@ class Sistema {
 		/* matrice dei tempi di collisione */
 		float **ct = NULL;
 
+		/* energia cinetica totale (m = 1, da dividere per 2) */
+		float K;
+
 //	protected:
 }; /* -----  end of class Sistema  ----- */
 
