@@ -1,5 +1,5 @@
 #define N 10	/* numero particelle */
-#define S .01	/* raggio particelle */
+#define S .1	/* raggio particelle */
 #define L 1.	/* lunghezza del lato */
 #define D 3		/* dimensioni del problema */
 
@@ -22,6 +22,11 @@ class Sistema {
 //		Sistema& operator = (const Sistema &other);
 
 	private:
+		/* numero massimo di particelle nel volume */
+		unsigned int nMax;
+		/* rapporto (intero) tra la capienza e le particelle */
+		unsigned int step;
+
 		struct {
 			float x[3]; /* posizione della particella */
 			float v[3]; /* velocità della particella */
@@ -32,6 +37,9 @@ class Sistema {
 
 		/* energia cinetica totale (m = 1, da dividere per 2) */
 		float K;
+
+		/* Checks if particles can be contained in volume */
+		void capacity_check ( void );
 
 //	protected:
 }; /* -----  end of class Sistema  ----- */
