@@ -2,5 +2,7 @@
 *~
 # vim swap files
 *.swp
+# data files
+*.dat
 # executable
 part_libere
