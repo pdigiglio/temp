@@ -63,13 +63,34 @@ Sistema::Sistema (void) {
 
 	/* azzero l'energia cinetica del sistema */
 	K = (float) 0;
-	for ( unsigned short int n = 0; n < N; n ++ ) {
+	/* XXX Se 'N' è dispari non funziona! */
+	for ( unsigned short int s = 0; s < (unsigned) N / 2; s ++ ) {
+		printf( "%hu\t", s );
 		for ( unsigned short int d = 0; d < D; d ++ ) {
-			*( (*( p + n )).v + d ) = 2 * ( (float) rand() / RAND_MAX - 1 / 2 );
-//			printf( "%hu\t%f\n", d, *( (*( p + n )).v + d ) );
-			K += *( (*( p + n )).v + d ) * *( (*( p + n )).v + d );
+			/* assegno la velocità */
+			*( (*( p + s )).v + d ) = (float) 2 * rand() / RAND_MAX - 1;
+			/* variabile ausiliaria */
+			unsigned short int z = N / 2 + ( s + *( j + d ) ) % ( N / 2 );
+			/* assegno la stessa velocità (segno invertito) */
+			*( (*( p + z )).v + d ) = - *( (*( p + s )).v + d );
+
+			printf( "%hu\t%f\t", d, *( (*( p + s )).v + d ) );
+			K += 2 * *( (*( p + s )).v + d ) * *( (*( p + s )).v + d );
 		}
+		printf( "\n" );
 	}
+
+	printf( "\n");
+	float tmp[3] = {};
+	for ( unsigned short int s = 0; s < N; s ++ ) {
+		printf( "%hu\t", s );
+		for ( unsigned short int d = 0; d < D; d ++ ) {
+			printf( "%hu\t%f\t", d, *( (*( p + s )).v + d ) );
+			tmp[d] += *( (*( p + s )).v + d );
+		}
+		printf( "\n" );
+	}
+	printf( "Velocità totale (cdm): (%f, %f, %f)\n", tmp[0], tmp[1], tmp[2] );
 }/* -----  end of method Sistema::Sistema (ctor)  ----- */
 
 /*
