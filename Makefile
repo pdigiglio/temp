@@ -3,6 +3,7 @@
 #
 
 main=part_libere
+modules=part_libere.o
 
 SHELL=bash
 
@@ -10,7 +11,7 @@ SHELL=bash
 CXX = g++
 
 # some cpu-dependent options
-MARCH = core2
+MARCH = pentium-m
 MASM = intel
 
 # standard language
@@ -20,7 +21,7 @@ STD = gnu++11
 CXXFLAGS = -Wall -O2 -Wextra -pedantic -march=$(MARCH) -std=$(STD) \
 		   -masm=$(MASM) -mtune=$(MARCH) -fopenmp -lm
 
-$(main): %: %.cpp
+$(main): %: %.cpp $(modules) Makefile
 	@ echo
 	@ echo -e "`tput bold``tput setaf 1`[INFO]`tput sgr0`"
 	@ echo -e "Architettura rilevata:\t\t" \
@@ -33,3 +34,9 @@ $(main): %: %.cpp
 		"$(CXX)`tput setaf 2` $<`tput sgr0` -o `tput bold`$@`tput sgr0`" \
 		"$(CXXFLAGS)\n\n"
 
+
+-include $(modules:.o=.d)
+
+%.o:%.cc
+	g++ -c $*.cc -o $*.o $(CXXFLAGS)
+	g++ -MM $*.cc -o $*.d $(CXXFLAGS)
