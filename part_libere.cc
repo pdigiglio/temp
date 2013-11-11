@@ -21,7 +21,7 @@
  */
 Sistema::Sistema ( void ) {
 	/* controllo che le particelle stiano nel volume */
-	Sistema::capacity_check();
+//	Sistema::capacity_check();
 
 	/* scelgo una terna di numeri casuali */
 	unsigned short int j[3];
@@ -75,30 +75,32 @@ Sistema::Sistema ( void ) {
  */
 void
 Sistema::capacity_check ( void ) {
-	/* lato minimo dei cubi sui vertici dei quali dispongo le sfere */
-	float l = (float) 4 * S / sqrt(3);
-	
-	/* calcolo il massimo numero di particelle che il cubo contiene */
-	unsigned short int n = (short) ( L / l ), m = n;
-	/* se 'n == 0' stampo l'errore e termino l'esecuzione */
-	if ( !n ) {
+	/* se il diametro di una sfera è maggiore del lato */
+	if ( (float) L < 2 * S ) {
+		/* stampo l'errore */
 		fprintf( stderr, "[" ANSI_MAGENTA "%s" ANSI_RESET ": "
 				ANSI_RED "Errore" ANSI_RESET "] "
 				"Superata capienza massima sistema: ridurre raggio.\n",
 				__FUNCTION__ );
+		/* termino 'esecuzione */
 		exit(EXIT_FAILURE);
 	}
 
-	/* calcolo meglio la capienza */
-	if ( (float) L / l - n ) {
-		/* riduco il numero dei cubi "sfasati" */
-		m --;
-		if ( (float) L / l - n < 2 * S )
-			/* riduco il numero dei cubi "non sfasati" */
-			n --;
-	}
+	unsigned int count = 0;
+	float l = (float) 
+	for ( float x = 0; x + 2 * S < L; x +=  )
+//	/* calcolo meglio la capienza */
+//	if ( (float) L / l - n ) {
+//		/* riduco il numero dei cubi "sfasati" */
+//		m --;
+//		if ( (float) L / l - n < 2 * S )
+//			/* riduco il numero dei cubi "non sfasati" */
+//			n --;
+//	}
 
-	/* controllo che il numero di particelle non ecceda la capienza */
+	/* lato minimo dei cubi sui vertici dei quali dispongo le sfere */
+	float l = (float) 4 * S / sqrt(3);	/* controllo che il numero di particelle non ecceda la capienza */
+	
 	nMax = pow( n, 3 ) + pow( m, 3 );
 	if ( (unsigned) N > nMax ) {
 		fprintf( stderr, "[" ANSI_MAGENTA "%s" ANSI_RESET ": "
