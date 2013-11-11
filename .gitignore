@@ -2,6 +2,8 @@
 *~
 # vim swap files
 *.swp
+# data files
+*.dat
 # executable
 *.a
 *.o
