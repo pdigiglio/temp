@@ -2,7 +2,9 @@
 # Makefile - simple rules to easily build sources
 #
 
+# Main file to compile
 main=part_libere
+# modules to create
 modules=part_libere.o
 
 SHELL=bash
@@ -11,15 +13,17 @@ SHELL=bash
 CXX = g++
 
 # some cpu-dependent options
-MARCH = pentium-m
+MARCH = core2
 MASM = intel
 
 # standard language
 STD = gnu++11
 
 # Opzioni
-CXXFLAGS = -Wall -O2 -Wextra -pedantic -march=$(MARCH) -std=$(STD) \
-		   -masm=$(MASM) -mtune=$(MARCH) -fopenmp -lm
+CXXFLAGS = -W -Wall -Wextra -Wunreachable-code -Wunused \
+		   -Wformat-security -Wmissing-noreturn \
+		   -O3 -pedantic -std=$(STD) -masm=$(MASM) \
+		   -march=$(MARCH) -mtune=$(MARCH) -fopenmp # -time
 
 $(main): %: %.cpp $(modules) Makefile
 	@ echo
@@ -38,5 +42,7 @@ $(main): %: %.cpp $(modules) Makefile
 -include $(modules:.o=.d)
 
 %.o:%.cc
-	g++ -c $*.cc -o $*.o $(CXXFLAGS)
-	g++ -MM $*.cc -o $*.d $(CXXFLAGS)
+	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -c  " \
+		"`tput setaf 2`$*.cc`tput sgr0` -o `tput bold`$*.o`tput sgr0`" # $(CXXFLAGS)"
+	@echo -e "[`tput setaf 3`depend`tput sgr0`] $(CXX) -MM" \
+		" `tput setaf 2`$*.cc`tput sgr0` -o `tput bold`$*.d`tput sgr0`" # $(CXXFLAGS)"
