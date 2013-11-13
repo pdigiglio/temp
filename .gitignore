@@ -2,6 +2,12 @@
 *~
 # vim swap files
 *.swp
+# images
+*.jpeg
+# .log files
+*.log
+# GNUplot files
+*.gpl
 # data files
 *.dat
 # executable
