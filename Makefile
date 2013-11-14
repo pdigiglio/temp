@@ -2,24 +2,58 @@
 # Makefile - simple rules to easily build sources
 #
 
-main=part_libere
-modules=part_libere.o
+# Main file to compile
+main	= part_libere
+# Modules to create
+modules	= part_libere.o
 
-SHELL=/bin/bash
+# Directory for modules and headers (every header is supposed to be
+# named like the corresponding module and vice versa)
+MDIR	= ../moduli
+IDIR	= ../include
 
-# Compilatore c++
-CXX = g++
+# Modules direcory (XXX is $(VPATH) a special variable?)
+VPATH	= $(MDIR)
 
-# some cpu-dependent options
-MARCH = pentium-m
-MASM = intel
+# Libraries to be linked in
+LBS		= m # math library
+LBSPATH	= 
 
+# Creo l'opzione da passare al compilatore per le librerie: aggiungo
+# il prefisso '-l' a tutte le librerie specificate in $(LBS) e il pre-
+# fisso '-L' alle directory dove si trovano le librerie
+LDFLAGS	= $(addprefix -l,$(LBS))
+ifneq ($(LDFLAGS),)
+	LDFLAGS += $(addprefix -L,$(LBSPATH))
+endif
+
+# Creo l'opzione da passare al compilatore per le directory dei file 
+# .h "custom". L'opzione '-I-' indica che nelle directory specificate
+# in precedenza bisogna cercare soltanto i file locali (cioè non in-
+# clusi con '#include < ... >')
+INCPATH	= $(addprefix -I,$(IDIR))
+# FIXME Messaggio di errore dice che è obsoleto
+# INCPATH += -I-
+
+# Creo i file oggetto dei moduli
+OBJS	= $(addsuffix .o,$(MODULES))
+
+SHELL	= /bin/bash
+
+# C/C++ compiler
+C		= gcc
+CXX		= g++
+# Some cpu-dependent options
+MARCH	= core2
+MASM	= intel
 # standard language
-STD = gnu++11
+STD		= gnu++11
 
 # Opzioni
-CXXFLAGS = -Wall -O2 -Wextra -pedantic -march=$(MARCH) -std=$(STD) \
-		   -masm=$(MASM) -mtune=$(MARCH) -fopenmp -lm
+CXXFLAGS = -W -Wall -Wextra -Wunreachable-code -Wunused \
+		   -Wformat-security -Wmissing-noreturn \
+		   -O3 -pedantic -std=$(STD) -masm=$(MASM) \
+		   -march=$(MARCH) -mtune=$(MARCH) -fopenmp # -time
 
 $(main): %: %.cpp $(modules) Makefile
 	@ echo
@@ -38,5 +72,7 @@ $(main): %: %.cpp $(modules) Makefile
 -include $(modules:.o=.d)
 
 %.o:%.cc
-	g++ -c $*.cc -o $*.o $(CXXFLAGS)
-	g++ -MM $*.cc -o $*.d $(CXXFLAGS)
+	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -c  " \
+		"`tput setaf 2`$*.cc`tput sgr0` -o `tput bold`$*.o`tput sgr0`" # $(CXXFLAGS)"
+	@echo -e "[`tput setaf 3`depend`tput sgr0`] $(CXX) -MM" \
+		" `tput setaf 2`$*.cc`tput sgr0` -o `tput bold`$*.d`tput sgr0`" # $(CXXFLAGS)"
