@@ -91,7 +91,7 @@ Sistema::capacity_check ( void ) {
 
 	unsigned int count = 0;
 	float l = (float) 
-	for ( float x = 0; x + 2 * S < L; x +=  )
+//	for ( float x = 0; x + 2 * S < L; x +=  )
 //	/* calcolo meglio la capienza */
 //	if ( (float) L / l - n ) {
 //		/* riduco il numero dei cubi "sfasati" */

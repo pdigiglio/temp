@@ -30,6 +30,7 @@ class Sistema {
 		/* rapporto (intero) tra la capienza e le particelle */
 		unsigned int step;
 
+		/* record che rappresenta una particella */
 		struct {
 			float x[3]; /* posizione della particella */
 			float v[3]; /* velocità della particella */

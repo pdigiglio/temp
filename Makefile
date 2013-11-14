@@ -5,7 +5,7 @@
 main=part_libere
 modules=part_libere.o
 
-SHELL=bash
+SHELL=/bin/bash
 
 # Compilatore c++
 CXX = g++
