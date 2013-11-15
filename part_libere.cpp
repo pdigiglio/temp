@@ -23,6 +23,7 @@
 #include <time.h>
 
 #include "part_libere.cc"
+#include "info_time.cc"
 
 /* 
  * ===  FUNCTION  ===================================================
@@ -35,7 +36,19 @@ main ( int argc, char *argv[] ) {
 	/* inizializzo il seme dei numeri casuali */
 	srand( time(NULL) );
 
+	unsigned int begin, end;
+
+	begin = clock();
+	unsigned int a;
+	for ( unsigned int j = 0; j < 1000000; j ++ )
+		for ( unsigned k = 0; k < 1000; k ++ )
+			a = j * k;
+
 	Sistema s;
+	end = clock();
+
+	print_exe_time( begin, end );
+//	fprintf( stderr, "a: %u; %g\n", a, (double) ( end - begin ) / CLOCKS_PER_SEC );
 
 	exit(EXIT_SUCCESS);
 } /* ----------  end of function main  ---------- */

@@ -3,7 +3,7 @@
 #define L 1.	/* lunghezza del lato */
 #define D 3		/* dimensioni del problema */
 
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 
 #ifndef  part_libere_INC
