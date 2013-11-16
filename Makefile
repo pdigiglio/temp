@@ -2,18 +2,26 @@
 # Makefile - simple rules to easily build sources
 #
 
+all: mkdep $(MAIN)
+
+# Clean directory from dependences, objects and executable
+clean:
+#	@echo -e "rm `tput bold``tput setaf 6`--recursive --force --verbose`tput sgr0` *.d *.o .tmp $(MAIN)"
+	@-rm --recursive --force --verbose *.o *.d $(MAIN)
+.PHONY: all clean
+
 # Main file to compile
-main	= part_libere
+MAIN	= free_part
 # Modules to create
-MODULES	= part_libere round
+MODULES	= part_libere round info_time
 
 # Directory for modules and headers (every header is supposed to be
 # named like the corresponding module and vice versa)
-MDIR	= ./modules/
-IDIR	= ./include/
+MDIR	= ./modules
+IDIR	= ./include
 
-# Modules direcory (XXX is $(VPATH) a special variable?)
-VPATH	= $(MDIR)
+# Modules direcory
+VPATH	= $(MDIR):$(MDIR)/common
 
 # Libraries to be linked in
 LBS		= m # math library
@@ -36,12 +44,11 @@ INCPATH	= $(addprefix -I,$(IDIR))
 # INCPATH += -I-
 
 # Creo i file oggetto dei moduli
-OBJS	= $(addsuffix .o,$(MODULES))
+OBJS	= $(addsuffix .o,$(MODULES) $(MAIN))
 
 SHELL	= /bin/bash
-
 # C/C++ compiler
-C		= gcc
+CC		= gcc
 CXX		= g++
 # Some cpu-dependent options
 MARCH	= core2
@@ -51,34 +58,53 @@ STD		= gnu++11
 
 # Opzioni
 CXXFLAGS = -W -Wall -Wextra -Wunreachable-code -Wunused -Wformat-security -Wmissing-noreturn \
-		   -O3 -pedantic -std=$(STD) -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) -fopenmp # -time
+		   -O1 -pedantic -std=$(STD) -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) -fopenmp # -time
 
--include $(addsuffix .d,$(MODULES))
--include $(addsuffix .d,$(main))
-
-$(main): %: %.cpp $(OBJS) Makefile
-	@ echo
-	@ echo -e "[`tput setaf 3`info`tput sgr0`] Architettura rilevata:\t\t" \
-		`tput setaf 2`` gcc -march=native -Q --help=target | grep --text march | cut -f3 ``tput sgr0`
-	@ echo -e "[`tput setaf 3`info`tput sgr0`] Architettura selezionata:\t" `tput setaf 2`$(MARCH)`tput sgr0`
-	@ echo
-	@ echo -e "[`tput setaf 6`main`tput sgr0`]"\
-		"$(CXX)`tput setaf 2` $<`tput sgr0` -o `tput bold`$@`tput sgr0`" \
-		"$(CXXFLAGS) $(INCPATH) $(LDFLAGS)\n"
-	$(CXX) $< -o $@ $(CXXFLAGS) $(INCPATH) $(LDFLAGS)
-
-
-%.o:%.cc
-	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -c  " \
-		"`tput setaf 2`$<`tput sgr0` -o `tput bold`$*.o`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
-	$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCPATH) $(LDFLAGS)
+# Dependence files (append dependences to prerequisite)
+ifneq ($(MAKECMDGOALS),clean)
+-include $(addsuffix .d,$(MODULES) $(MAIN))
+endif
 
 # Rule to make dependence file(s) for modules
 %.d:%.cc
-	@echo -e "[`tput setaf 3`depend`tput sgr0`] $(CXX) -MM" \
-		" `tput setaf 2`$<`tput sgr0` -o `tput bold`$@`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
+	@echo -e "[`tput setaf 3`depend`tput sgr0`] $(CXX) -MM -ansi -o `tput bold`$@`tput sgr0`" \
+		" `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
 	@$(CXX) -MM -ansi $< -o $@ $(INCPATH)
 
 # Rule to make dependence file(s) for main routine
 %.d:%.cpp
-	$(CXX) -MM -ansi $< -o $@ $(INCPATH)
+	@echo -e "[`tput setaf 3`depend`tput sgr0`] $(CXX) -MM -ansi -o `tput bold`$@`tput sgr0`" \
+		" `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
+	@$(CXX) -MM -ansi $< -o $@ $(INCPATH)
+
+# Rule to make object files
+%.o: %.cc
+	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -o `tput bold`$@`tput sgr0`" \
+		"-c `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
+	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCPATH) $(LDFLAGS)
+
+# Rule to make object file for main routine
+%.o: %.cpp
+	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -o `tput bold`$@`tput sgr0`" \
+		"-c `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
+	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCPATH) $(LDFLAGS)
+
+$(MAIN): %: $(OBJS) Makefile
+	@ echo
+	@ echo -e "[`tput setaf 6`info`tput sgr0`] Architettura rilevata:\t\t" \
+		`tput setaf 5`` gcc -march=native -Q --help=target | grep --text march | cut -f3 ``tput sgr0`
+	@ echo -e "[`tput setaf 6`info`tput sgr0`] Architettura selezionata:\t" `tput setaf 5`$(MARCH)`tput sgr0`
+	@ echo -e "[`tput bold``tput setaf 6`main`tput sgr0`]"\
+		"$(CXX) -o `tput bold`$@`tput sgr0` `tput setaf 2`$(OBJS)`tput sgr0`" \
+		"$(CXXFLAGS)$(INCPATH) $(LDFLAGS)\n"
+	@$(CXX) $(OBJS) -o $@ $(CXXFLAGS) $(INCPATH) $(LDFLAGS)
+
+
+# Produce executables
+mkxeq: $(MAIN)
+
+# make dependencies
+mkdep: $(addsuffix .d,$(MODULES) $(MAIN))
+	@echo ""
+	
+
