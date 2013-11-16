@@ -1,6 +1,7 @@
 #include "info_time.h"
 #include "colors.h"
 
+#include <stdio.h>
 #include <time.h>
 
 /* 
@@ -11,7 +12,8 @@
  * =====================================================================================
  */
 void
-print_exe_time ( unsigned int begin, unsigned int end ) {
+print_exe_time ( unsigned int begin ) {
+	unsigned int end = clock();
 	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET "] "
 			"Execution time: %u clock(s) = %g second(s).\n",
 			end - begin, (double) ( end - begin ) / CLOCKS_PER_SEC );
