@@ -1,19 +1,19 @@
 #
 # Makefile - simple rules to easily build sources
 #
+#
+# Main file to compile
+MAIN	= free_part
+# Modules to create
+MODULES	= part_libere round info_time
 
-all: mkdep $(MAIN)
+all: $(MAIN)
 
 # Clean directory from dependences, objects and executable
 clean:
 #	@echo -e "rm `tput bold``tput setaf 6`--recursive --force --verbose`tput sgr0` *.d *.o .tmp $(MAIN)"
 	@-rm --recursive --force --verbose *.o *.d $(MAIN)
 .PHONY: all clean
-
-# Main file to compile
-MAIN	= free_part
-# Modules to create
-MODULES	= part_libere round info_time
 
 # Directory for modules and headers (every header is supposed to be
 # named like the corresponding module and vice versa)
@@ -34,14 +34,14 @@ LDFLAGS	= $(addprefix -l,$(LBS))
 ifneq ($(LDFLAGS),)
 	LDFLAGS += $(addprefix -L,$(LBSPATH))
 endif
+# Add ROOT libaries
+LDFLAGS += `root-config --libs --cflags`
 
 # Creo l'opzione da passare al compilatore per le directory dei file 
 # .h "custom". L'opzione '-I-' indica che nelle directory specificate
 # in precedenza bisogna cercare soltanto i file locali (cioè non in-
 # clusi con '#include < ... >')
 INCPATH	= $(addprefix -I,$(IDIR))
-# FIXME Messaggio di errore dice che è obsoleto
-# INCPATH += -I-
 
 # Creo i file oggetto dei moduli
 OBJS	= $(addsuffix .o,$(MODULES) $(MAIN))
@@ -58,9 +58,9 @@ STD		= gnu++11
 
 # Opzioni
 CXXFLAGS = -W -Wall -Wextra -Wunreachable-code -Wunused -Wformat-security -Wmissing-noreturn \
-		   -O1 -pedantic -std=$(STD) -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) -fopenmp # -time
+		   -O3 -pedantic -std=$(STD) -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) -fopenmp # -time
 
-# Dependence files (append dependences to prerequisite)
+# FIXME Dependence files (append dependences to prerequisite)
 ifneq ($(MAKECMDGOALS),clean)
 -include $(addsuffix .d,$(MODULES) $(MAIN))
 endif
@@ -69,22 +69,22 @@ endif
 %.d:%.cc
 	@echo -e "[`tput setaf 3`depend`tput sgr0`] $(CXX) -MM -ansi -o `tput bold`$@`tput sgr0`" \
 		" `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
-	@$(CXX) -MM -ansi $< -o $@ $(INCPATH)
+	@$(CXX) -MM -ansi $< -o $@ $(INCPATH) $(LDFLAGS)
 
 # Rule to make dependence file(s) for main routine
 %.d:%.cpp
 	@echo -e "[`tput setaf 3`depend`tput sgr0`] $(CXX) -MM -ansi -o `tput bold`$@`tput sgr0`" \
 		" `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
-	@$(CXX) -MM -ansi $< -o $@ $(INCPATH)
+	@$(CXX) -MM -ansi $< -o $@ $(INCPATH) $(LDFLAGS)
 
 # Rule to make object files
-%.o: %.cc
+%.o: %.cc %.d Makefile
 	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -o `tput bold`$@`tput sgr0`" \
 		"-c `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
 	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCPATH) $(LDFLAGS)
 
 # Rule to make object file for main routine
-%.o: %.cpp
+%.o: %.cpp %.d Makefile
 	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -o `tput bold`$@`tput sgr0`" \
 		"-c `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
 	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCPATH) $(LDFLAGS)
