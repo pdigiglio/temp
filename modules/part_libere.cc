@@ -3,8 +3,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+//#include <iostream>
 
 #include <math.h>
+
+//#include "TH1F.h"
+//#include "TF1.h"
+
+/* serve per settare il titolo degli assi */
+//#include "TH1.h"
+//#include "TCanvas.h"
+//#include "TStyle.h"
+//#include "TROOT.h"
+//#include "TString.h"
+//#include "TGraph.h"
+//#include "TGraphErrors.h"
 
 /*
  * ------------------------------------------------------------------
@@ -14,50 +27,113 @@
  * ------------------------------------------------------------------
  */
 Sistema::Sistema ( void ) {
-//	/* controllo che le particelle stiano nel volume */
-////	Sistema::capacity_check();
-//
-//	/* scelgo una terna di numeri casuali */
-//	unsigned short int j[3];
-//	for ( unsigned short int d = 0; d < D; d ++ ) {
-//		*( j + d ) = (unsigned short) rand();
-////		printf( "%hu\t%hu\n", d, *( j + d ) );
-//	}
-//
-//	/* azzero l'energia cinetica del sistema */
-//	K = (float) 0;
-//	/* XXX Se 'N' è dispari non funziona! */
-//	for ( unsigned short int s = 0; s < (unsigned) N / 2; s ++ ) {
-////		printf( "%hu\t", s );
-//		for ( unsigned short int d = 0; d < D; d ++ ) {
-//			/* assegno la velocità */
-//			*( (*( p + s )).v + d ) = (float) 2 * rand() / RAND_MAX - 1;
-//			/* variabile ausiliaria */
-//			unsigned short int z = N / 2 + ( s + *( j + d ) ) % ( N / 2 );
-//			/* assegno la stessa velocità (segno invertito) */
-//			*( (*( p + z )).v + d ) = - *( (*( p + s )).v + d );
-//
-////			printf( "%hu\t%f\t", d, *( (*( p + s )).v + d ) );
-//			K += 2 * *( (*( p + s )).v + d ) * *( (*( p + s )).v + d );
-//		}
-////		printf( "\n" );
-//	}
-//	
-////	utile per il debugging
-//	/*
-//	printf( "\n");
-//	float tmp[3] = {};
-//	for ( unsigned short int s = 0; s < N; s ++ ) {
-//		printf( "%hu\t", s );
-//		for ( unsigned short int d = 0; d < D; d ++ ) {
-//			printf( "%hu\t%f\t", d, *( (*( p + s )).v + d ) );
-//			tmp[d] += *( (*( p + s )).v + d );
-//		}
-//		printf( "\n" );
-//	}
-//	printf( "Velocità totale (cdm): (%f, %f, %f)\n", tmp[0], tmp[1], tmp[2] );
-//	*/
+	/* alloco la memoria per le particelle */
+	p = (struct ptcl *) malloc ( nMax * sizeof( struct ptcl ) );
+	if ( p == NULL ) {
+		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
+				ANSI_YELLOW "%s" ANSI_RESET 
+				"] Dynamic memory allocation failed!\n"
+				" >> Line %u of file '%s'\n",
+				__func__, __LINE__, __FILE__ );
+		exit (EXIT_FAILURE);
+	}
+
+	/* stampo a schermo informazioni (n. particelle, raggio) */
+	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET "] "
+			"Number :: radius of particles (with N = %u) >> %lu :: %1.1g L\n",
+			(unsigned) N, (unsigned long) nMax, S );
+
+//	TH1 *histo = new TH1("histogram", "Scalar speed distribution", 100, -1. , 1.);
+
+	/* inizializzo posizione e velocità delle particelle */
+	float x[3], tmp;
+	for ( unsigned short int i = 0; i < N; i ++ ) {
+		x[0] = (float) i / N;
+		/* coordinata z */
+		for ( unsigned short int k = 0; k < N; k ++ ) {
+			x[2] = (float) k / N;
+			/* coordinata y */
+			for ( unsigned short int j = 0; j < N; j ++ ) {
+				x[1] = (float) j / N;
+			
+				tmp = 0;
+				/* variabile ausiliaria per l'indice di particella */
+				unsigned int idx = i + j + k;
+				for ( unsigned short int d = 0; d < D; d ++ ) {
+					/* assegno la coordinata d-esima */
+					*( (*( p + idx )).x + d ) = *( x + d );
+					/* assegno la velocità d-esima */
+					*( (*( p + idx )).v + d ) = (float) 2 * rand() / RAND_MAX - 1;
+
+					/* assegno la coordinata traslata */
+					*( (*( p + idx + nMax / 2 )).x + d ) = *( x + d ) + (float) 1 / ( 2 * N );
+					/* assegno la velocità (cambiata di segno) */
+					*( (*( p + idx + nMax / 2 )).v + d ) = - *( (*( p + idx )).v + d );
+
+					/* calcolo l'energia cinetica */
+					tmp += *( (*( p + idx )).v + d ) * *( (*( p + idx )).v + d );
+				}
+
+//				(*histo).Fill( tmp );
+				K += tmp;
+			}
+		}
+	}
+
+	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET
+			"] Initial kinetic energy: %g\n", K );
+
+	/* alloco la memoria per i tempi di collisione */
+	ct = (float **) malloc ( ( nMax - 1 ) * sizeof(float *) );
+	if ( ct == NULL ) {
+		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
+				ANSI_YELLOW "%s" ANSI_RESET 
+				"] Dynamic memory allocation failed!\n"
+				" >> Line %u of file '%s'\n",
+				__func__, __LINE__, __FILE__ );
+		exit (EXIT_FAILURE);
+	}
+	/* creo la matrice triangolare */
+	for ( unsigned int n = 0; n < nMax; n ++ ) {
+		*( ct + n ) = (float *) malloc ( ( nMax - n ) * sizeof(float) );
+		if ( *( ct + n ) == NULL ) {
+			fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
+					ANSI_YELLOW "%s" ANSI_RESET 
+					"] Dynamic memory allocation failed!\n"
+					" >> Line %u of file '%s'\n",
+					__func__, __LINE__, __FILE__ );
+			exit (EXIT_FAILURE);
+		}
+	}
+
+	/* stampa la velocità del centro di massa */
+//	Sistema::mass_center_speed();
 }/* -----  end of method Sistema::Sistema (ctor)  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: mass_center_speed
+ * Description: find mass center system speed. useful for debugging
+ * ------------------------------------------------------------------
+ */
+void
+Sistema::mass_center_speed ( void ) {
+	printf( "\n");
+	float tmp[3] = {};
+	for ( unsigned int s = 0; s < nMax / 2; s ++ ) {
+//		printf( "%hu\t", s );
+		for ( unsigned short int d = 0; d < D; d ++ ) {
+//			printf( "%hu\t%f\t", d, *( (*( p + s )).v + d ) );
+			tmp[d] += *( (*( p + s )).v + d );
+			/* aggiungo questo per evitare che la variabile si saturi */
+			tmp[d] += *( (*( p + s + nMax / 2 )).v + d );
+		}
+//		printf( "\n" );
+	}
+	fprintf( stderr, "[" ANSI_CYAN "info" ANSI_RESET
+			"] Center of mass velocity: (%f, %f, %f)\n", tmp[0], tmp[1], tmp[2] );
+} /* -----  end of method Sistema::mass_center_speed  ----- */
 
 /*
  * ------------------------------------------------------------------

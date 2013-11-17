@@ -21,10 +21,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 //#include "colors.h"
 #include "part_libere.h"
 #include "info_time.h"
+#include "round.h"
 
 /* 
  * ===  FUNCTION  ===================================================
@@ -37,19 +39,19 @@ main ( int argc, char *argv[] ) {
 	/* inizializzo il seme dei numeri casuali */
 	srand( time(NULL) );
 
-	unsigned int begin, end;
+	unsigned int begin = clock();
 
-	bool x[2];
-	begin = clock();
-	unsigned int a;
-	for ( unsigned int j = 0; j < 1000000; j ++ )
-		for ( unsigned k = 0; k < 100000; k ++ )
-			x[ k % 2 ] = j * k;
+//	bool x[2];
+//	unsigned int a;
+//	for ( unsigned int j = 0; j < 1000000; j ++ )
+//		for ( unsigned k = 0; k < 10000; k ++ )
+//			x[ k % 2 ] = j * k;
 
 	Sistema s;
 
+//	round( NAN, NAN );
 	/* prints execution time to stderr */
-	print_exe_time( begin );
+	print_exe_time( begin, __func__ );
 
 	exit(EXIT_SUCCESS);
 } /* ----------  end of function main  ---------- */
