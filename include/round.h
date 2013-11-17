@@ -4,4 +4,8 @@
 
 void round ( long double val, long double err );
 
+// TODO
+//void round ( double val, double err );
+//void round ( float val, float err );
+
 #endif   /* ----- #ifndef round_INC  ----- */
