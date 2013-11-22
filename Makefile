@@ -27,6 +27,11 @@ VPATH	= $(MDIR):$(MDIR)/common
 LBS		= m # math library
 LBSPATH	= 
 
+# FIXME Dependence files (append dependences to prerequisite)
+ifneq ($(MAKECMDGOALS),clean)
+-include $(addsuffix .d,$(MODULES) $(MAIN))
+endif
+
 # Creo l'opzione da passare al compilatore per le librerie: aggiungo
 # il prefisso '-l' a tutte le librerie specificate in $(LBS) e il pre-
 # fisso '-L' alle directory dove si trovano le librerie
@@ -51,19 +56,14 @@ SHELL	= /bin/bash
 CC		= gcc
 CXX		= g++
 # Some cpu-dependent options
-MARCH	= core2
+MARCH	= native
 MASM	= intel
 # standard language
 STD		= gnu++11
 
 # Opzioni
 CXXFLAGS = -W -Wall -Wextra -Wunreachable-code -Wunused -Wformat-security -Wmissing-noreturn \
-		   -O3 -pedantic -std=$(STD) -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) -fopenmp # -time
-
-# FIXME Dependence files (append dependences to prerequisite)
-ifneq ($(MAKECMDGOALS),clean)
--include $(addsuffix .d,$(MODULES) $(MAIN))
-endif
+		   -O3 -pedantic -std=$(STD) # -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) -fopenmp #-time
 
 # Rule to make dependence file(s) for modules
 %.d:%.cc

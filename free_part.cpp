@@ -53,5 +53,6 @@ main ( int argc, char *argv[] ) {
 	/* prints execution time to stderr */
 	print_exe_time( begin, __func__ );
 
+//	printf( "Dimensione: %hu\n", (unsigned short) sizeof(float *));
 	exit(EXIT_SUCCESS);
 } /* ----------  end of function main  ---------- */
