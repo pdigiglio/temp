@@ -37,3 +37,37 @@ round ( long double val, long double err ) {
 				floorl( tmp + 0.5) * powl(10., exp)
 			);
 }		/* -----  end of function round  ----- */
+
+/* 
+ * ===  FUNCTION  =============================================================
+ *         Name:  round
+ *  Description:  rounds 'val' and 'err' to the same signicant figures
+ *  			  (double version)
+ * ============================================================================
+ */
+void
+round ( double val, double err ) {
+	if (  isnan( err ) ) {
+		fprintf( stdout, ANSI_RED "%f\t%f" ANSI_RESET, val, err );
+		return;
+	}
+
+	/* dichiaro una variabile per l'esponente */
+	short int exp = (short) log10( fabs( err ) );
+
+	/* controllo che l'approssimazione sia corretta */
+	double tmp = err / pow( 10, exp );
+	while ( !( tmp >= 1 && tmp < 10 ) ) {
+		if ( err / pow( 10, exp ) <= 1 ) exp --;
+		else exp ++;
+	}
+
+	/* controllo le cifre decimali da tenere */
+	if ( tmp < 3 )
+		exp --;
+
+	printf( "%f\t%f",
+				floor( val / pow(10., exp) + 0.5) * pow(10., exp),
+				floor( tmp + 0.5) * pow(10., exp)
+			);
+}		/* -----  end of function round  ----- */

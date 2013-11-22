@@ -3,6 +3,7 @@
 #define  round_INC
 
 void round ( long double val, long double err );
+void round ( double val, double err );
 
 // TODO
 //void round ( double val, double err );
