@@ -48,11 +48,16 @@ main ( int argc, char *argv[] ) {
 //			x[ k % 2 ] = j * k;
 
 	Sistema s;
+//	s.print_x();
+	s.evolve();
+	s.print_x();
 
+	double int_part;
+	double frac_part = modf( -1.5, &int_part );
 //	round( NAN, NAN );
 	/* prints execution time to stderr */
 	print_exe_time( begin, __func__ );
 
-//	printf( "Dimensione: %hu\n", (unsigned short) sizeof(float *));
+//	printf( "float: %g\t p.te intera: %g\n", 1.5, (float) (int) 1.5);
 	exit(EXIT_SUCCESS);
 } /* ----------  end of function main  ---------- */

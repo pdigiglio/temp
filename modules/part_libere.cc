@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+//#include <string.h>
 //#include <iostream>
 
 #include <math.h>
@@ -11,13 +12,13 @@
 //#include "TF1.h"
 
 /* serve per settare il titolo degli assi */
-#include "TH1.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include "TROOT.h"
-#include "TString.h"
-#include "TGraph.h"
-#include "TGraphErrors.h"
+//#include "TH1.h"
+//#include "TCanvas.h"
+//#include "TStyle.h"
+//#include "TROOT.h"
+//#include "TString.h"
+//#include "TGraph.h"
+//#include "TGraphErrors.h"
 
 /*
  * ------------------------------------------------------------------
@@ -77,38 +78,11 @@ Sistema::Sistema ( void ) {
 				/* coordinata y */
 				*( x + 1 ) = (float) j / N;
 				*( y + 1 ) = *( x + 1 ) + .5 / N;
-
-				/* memoria per i tempi di collisione */
-				if ( n ) {
-					*( ct + n  - 1 ) = (float *) malloc ( n * sizeof(float) );
-//					printf( "i: %u\tlen: %u\n", n - 1, n );
-					if ( *( ct + n - 1 ) == NULL ) {
-						fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
-								ANSI_YELLOW "%s" ANSI_RESET 
-								"] Dynamic memory allocation failed!\n"
-								" >> Line %u of file '%s'\n",
-								__func__, __LINE__, __FILE__ );
-						exit (EXIT_FAILURE);
-					}
-				}			
 				
 				/* aggiorno l'indice della particella (dispari) */
 				m = n + 1;
-				/* memoria per i tempi di collisione (n = m - 1) */
-				*( ct + n ) = (float *) malloc ( m * sizeof(float) );
-//				printf( "i: %u\tlen: %u\n", n, m );
-				if ( *( ct + n ) == NULL ) {
-					fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
-							ANSI_YELLOW "%s" ANSI_RESET 
-							"] Dynamic memory allocation failed!\n"
-							" >> Line %u of file '%s'\n",
-							__func__, __LINE__, __FILE__ );
-					exit (EXIT_FAILURE);
-				}
-
 				/* azzero l'energia cinetica delle particella */
 				kinetic = (float) 0;
-
 				/* assegno le posizioni e le velocità */
 				for ( unsigned short int d = 0; d < D; d ++ ) {
 					/* assegno la coordinata d-esima */
@@ -127,10 +101,33 @@ Sistema::Sistema ( void ) {
 				}
 //				fprintf( stderr, "\n" );
 
+				/* memoria per i tempi di collisione (n = m - 1) */
+				*( ct + n ) = (float *) malloc ( n * sizeof(float) );
+				*( ct + m ) = (float *) malloc ( m * sizeof(float) );
+				if ( ! ( *( ct + n ) && *( ct + n ) ) ) {
+					fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
+							ANSI_YELLOW "%s" ANSI_RESET 
+							"] Dynamic memory allocation failed!\n"
+							" >> Line %u of file '%s'\n",
+							__func__, __LINE__, __FILE__ );
+					exit (EXIT_FAILURE);
+				}
+
+				/* calcolo i tempi di collisione */
+				unsigned int q;
+				for ( q = 0; q < n; q ++ ) {
+					*( *( ct + n ) + q ) = crash_time( q, n);
+//					fprintf( stderr, "(%u, %u) %g\n", n, q, *( *( ct + n ) + q ) );
+					*( *( ct + m ) + q ) = crash_time( q, m);
+//					fprintf( stderr, "(%u, %u) %g\n", m, q, *( *( ct + m ) + q ) );
+				}
+				*( *( ct + m ) + q ) = crash_time( q, m);
+//				fprintf( stderr, "(%u, %u) %g\n", m, q, *( *( ct + m ) + q ) );
+
 				/* aggiorno l'indice della particella (pari) */
 				n += 2;
 
-//				printf( "Kinetic: %g\n", kinetic );
+//				printf( "%g\n%g\n", kinetic, kinetic );
 //				(*histo).Fill( tmp );
 				K += kinetic;
 			}
@@ -140,7 +137,6 @@ Sistema::Sistema ( void ) {
 	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET
 			"] Initial kinetic energy: %g\n", K );
 
-	printf( "%f\n", crash_time( 3, 6 ) );
 	/* stampa la velocità del centro di massa */
 //	Sistema::mass_center_speed();
 }/* -----  end of method Sistema::Sistema (ctor)  ----- */
@@ -266,6 +262,64 @@ Sistema::sp ( float *a ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
+ *      Method: netx_crash
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+float
+Sistema::next_crash ( void ) {
+	/* XXX */
+	float minimum = ct[1][0];
+	for ( unsigned int n = 2; n < nMax; n ++ )
+		for ( unsigned int m = 0; m < n; m ++ )
+			if ( minimum > ct[n][m] ) {
+				minimum = ct[n][m];
+				i0 = n; j0 = m;
+			}
+
+	fprintf( stderr, "[] Minimo: %g\n", minimum );
+	return minimum;
+} /* -----  end of method Sistema::netx_crash  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: evolve
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Sistema::evolve ( void ) {
+	float time = next_crash();
+
+	for ( unsigned int n = 0; n < nMax; n ++ )
+		for ( unsigned short int d = 0; d < D; d ++ ) {
+			p[n].x[d] += time * p[n].v[d];
+			p[n].x[d] -= floor( p[n].x[d] );
+		}
+} /* -----  end of method Sistema::evolve  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: print_x
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Sistema::print_x ( void ) {
+	for ( unsigned int n = 0; n < nMax; n ++ ) {
+		fprintf( stdout, "%u\t", n );
+		for ( unsigned short int d = 0; d < D; d ++ )
+			fprintf( stdout, "%f\t", p[n].x[d] );
+
+		fprintf( stdout, "\n" );
+	}
+} /* -----  end of method Sistema::print_x  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
  *      Method: crash_time
  * Description: 
  * ------------------------------------------------------------------
@@ -273,23 +327,31 @@ Sistema::sp ( float *a ) {
 float
 Sistema::crash_time ( unsigned int i, unsigned int j ) {
 	/* temporary variables for vector differences */
-	float r_ij[D], v_ij[D];
-	/* minimum found time */
-	float time = NAN;
+	float R_ij[D], v_ij[D];
+	/* assign initial values */
+	for ( unsigned short int d = 0; d < D; d ++ ) {
+		/* positions */
+		*( R_ij + d ) = *( (*( p + i )).x + d ) - *( (*( p + j )).x + d );
+		/* impose cyclic conditions */
+		*( R_ij + d ) -= round( *( R_ij + d ) );
+	
+		/* velocity components */
+		*( v_ij + d ) = *( (*( p + i )).v + d ) - *( (*( p + j )).v + d );
+	}
+
+	/* minimum found time (initially infinite) */
+	float time = HUGE_VAL;
 
 	/* auxiliary variable: translation for coordinates */
-	float t[D];
+	signed short int t[D];
+	float r_ij[D];
 	/* cycle over all possible particle image */
-	for ( *t = -1; *t < 2; *t += 1 )
-		for ( *( t + 2 ) = -1; *( t + 2 ) < 2; *( t + 2 ) += 1 )
-			for ( *( t + 1 ) = -1; *( t + 1 ) < 2; *( t + 1 ) += 1 ) {
+	for ( t[0] = -1; t[0] < 2; t[0] ++ )
+		for (  t[2] = -1; t[2] < 2; t[2] ++ )
+			for ( t[1] = -1; t[1] < 2; t[1] ++ ) {
 
-				/* assign vector differences */
-				for ( unsigned short int d = 0; d < D; d ++ ) {
-					*( r_ij + d ) = *( (*( p + i )).x + d ) - *( (*( p + j )).x + d ) + *( t + d );
-					*( v_ij + d ) = *( (*( p + i )).v + d ) - *( (*( p + j )).v + d );
-//					fprintf( stderr, "r_ij:%g\tv_ij: %g\n", *( r_ij + d ), *( v_ij + d ) );
-				}
+				for ( unsigned short int d = 0; d < D; d ++ )
+					*( r_ij + d ) = *( R_ij + d ) + (float) *( t + d );
 
 				/* evaluate collision time */
 				float tmp = sp( r_ij, v_ij );
@@ -306,7 +368,7 @@ Sistema::crash_time ( unsigned int i, unsigned int j ) {
 						delta = -( tmp - sqrt( delta ) ) / v2;
 //						printf( "delta2: %f\n", delta );
 
-						if ( isnan( time ) || time > delta ) 
+						if ( time > delta ) 
 							time = delta;
 					}
 				}

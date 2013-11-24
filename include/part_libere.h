@@ -1,5 +1,5 @@
 #define D 3		/* dimensioni del problema */
-#define N 5	/* sqrt[D]( numero particelle / 2 ) */
+#define N 10	/* sqrt[D]( numero particelle / 2 ) */
 #define E .2	/* frazione d'impacchettamento $\eta$ */
 //#define S .1	/* raggio particelle */
 
@@ -24,7 +24,9 @@ class Sistema {
 
 		/* assignment operator */
 //		Sistema& operator = (const Sistema &other);
+		void evolve ( void );
 
+		void print_x ( void );
 	private:
 		/* numero massimo di particelle nel volume */
 		const unsigned long int nMax = (unsigned long) 2 * powl( N, D );
@@ -42,6 +44,8 @@ class Sistema {
 			float v[3]; /* velocità della particella */
 		} *p = NULL;
 
+		/* colliding particles */
+		unsigned int i0 = 1, j0 = 0;
 		/* matrice dei tempi di collisione */
 		float **ct = NULL;
 
@@ -52,6 +56,9 @@ class Sistema {
 		float sp ( const float *a, const float *b );
 		/* if only 'a' is given, returns his square modulus */
 		float sp ( float *a );
+		/* takes next crash */
+		float next_crash ( void );
+
 		/* collision time of particle 'i' with particle 'j' */
 		float crash_time ( unsigned int i, unsigned int j );
 		/* Checks if particles can be contained in volume */
