@@ -8,17 +8,17 @@
 
 #include <math.h>
 
-//#include "TH1F.h"
-//#include "TF1.h"
+#include "TH1F.h"
+#include "TF1.h"
 
 /* serve per settare il titolo degli assi */
-//#include "TH1.h"
-//#include "TCanvas.h"
-//#include "TStyle.h"
-//#include "TROOT.h"
-//#include "TString.h"
-//#include "TGraph.h"
-//#include "TGraphErrors.h"
+#include "TH1.h"
+#include "TCanvas.h"
+#include "TStyle.h"
+#include "TROOT.h"
+#include "TString.h"
+#include "TGraph.h"
+#include "TGraphErrors.h"
 
 /*
  * ------------------------------------------------------------------
@@ -29,7 +29,7 @@
  */
 Sistema::Sistema ( void ) {
 	/* alloco la memoria per le particelle */
-	p = (struct ptcl *) malloc ( nMax * sizeof( struct ptcl ) );
+	p = (struct ptcl *) malloc( nMax * sizeof( struct ptcl ) );
 	if ( p == NULL ) {
 		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
 				ANSI_YELLOW "%s" ANSI_RESET 
@@ -47,7 +47,7 @@ Sistema::Sistema ( void ) {
 //	TH1 *histo = new TH1("histogram", "Scalar speed distribution", 100, -1. , 1.);
 
 	/* alloco la memoria per i tempi di collisione */
-	ct = (float **) malloc ( nMax * sizeof(float *) );
+	ct = (double **) malloc ( nMax * sizeof(double *) );
 	if ( ct == NULL ) {
 		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
 				ANSI_YELLOW "%s" ANSI_RESET 
@@ -102,8 +102,8 @@ Sistema::Sistema ( void ) {
 //				fprintf( stderr, "\n" );
 
 				/* memoria per i tempi di collisione (n = m - 1) */
-				*( ct + n ) = (float *) malloc ( n * sizeof(float) );
-				*( ct + m ) = (float *) malloc ( m * sizeof(float) );
+				*( ct + n ) = (double *) malloc ( n * sizeof(double) );
+				*( ct + m ) = (double *) malloc ( m * sizeof(double) );
 				if ( ! ( *( ct + n ) && *( ct + n ) ) ) {
 					fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
 							ANSI_YELLOW "%s" ANSI_RESET 
@@ -266,9 +266,10 @@ Sistema::sp ( float *a ) {
  * Description: 
  * ------------------------------------------------------------------
  */
-float
+double
 Sistema::next_crash ( void ) {
 	/* XXX */
+	i0 = 1; j0 = 0;
 	float minimum = ct[1][0];
 	for ( unsigned int n = 2; n < nMax; n ++ )
 		for ( unsigned int m = 0; m < n; m ++ )
@@ -277,7 +278,7 @@ Sistema::next_crash ( void ) {
 				i0 = n; j0 = m;
 			}
 
-	fprintf( stderr, "[] Minimo: %g\n", minimum );
+//	fprintf( stderr, "[] Minimo: %g. Particelle %u - %u\n", minimum, i0, j0 );
 	return minimum;
 } /* -----  end of method Sistema::netx_crash  ----- */
 
@@ -290,14 +291,83 @@ Sistema::next_crash ( void ) {
  */
 void
 Sistema::evolve ( void ) {
-	float time = next_crash();
+	double time = next_crash();
 
-	for ( unsigned int n = 0; n < nMax; n ++ )
+//	histo = new TH1F("histogram", "Scalar speed distribution\n(crash)", 100, -1. , 1.);
+
+	/* evolve particle positions */
+	double t = time - tm;
+//	printf( "dt: %f\n", t );
+	for ( unsigned int n = 0; n < nMax; n ++ ) {
+//		if ( !( crash % ( 2 * nMax ) ) && crash )
+//			histo -> Fill( p[n].v[0] );
 		for ( unsigned short int d = 0; d < D; d ++ ) {
-			p[n].x[d] += time * p[n].v[d];
+			p[n].x[d] += t * p[n].v[d];
 			p[n].x[d] -= floor( p[n].x[d] );
 		}
+	}
+
+//	histo->Draw();
+//	c->Print( "nome.svg", "svg");
+
+	crash ++;
+
+	/* update colliding particles velocities */
+	Sistema::exchange();
+	/* evaluate new collision times */
+	Sistema::update_crash_times( time );
+
+	/* update system time */
+	tm += t;
 } /* -----  end of method Sistema::evolve  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: get_velocity
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+float
+Sistema::get_velocity ( unsigned int n, unsigned short int d ) {
+	return *( (*( p + n )). v + d );
+} /* -----  end of method Sistema::get_velocity  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: update_crash_times
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Sistema::update_crash_times ( double t0 = 0. ) {
+//	register unsigned int j;
+//	float **pt;
+//	for ( unsigned int i = 1; i < nMax; i ++ ) {
+//		pt = ct + i;
+//		for ( j = 0; j < i; j ++ )
+//			*( *pt + j ) = Sistema::crash_time( i, j );
+//	}
+
+	double **pt = ct + i0;
+	register unsigned int j;
+
+	for ( j = 0; j < i0; j ++ )
+		*( *pt + j ) = t0 + Sistema::crash_time( i0, j );
+
+	for ( j = i0 + 1; j < nMax; j ++ )
+		*( *( ct + j ) + i0 ) = t0 + Sistema::crash_time( i0, j );
+
+
+	pt = ct + j0;
+	for ( j = 0; j < j0; j ++ )
+		*( *pt + j ) = t0 + Sistema::crash_time( j0, j );
+
+	for ( j = j0 + 1; j < nMax; j ++ )
+		*( *( ct + j ) + j0 ) = t0 + Sistema::crash_time( j0, j );
+
+} /* -----  end of method Sistema::update_crash_times  ----- */
 
 /*
  * ------------------------------------------------------------------
@@ -308,12 +378,20 @@ Sistema::evolve ( void ) {
  */
 void
 Sistema::print_x ( void ) {
-	for ( unsigned int n = 0; n < nMax; n ++ ) {
-		fprintf( stdout, "%u\t", n );
-		for ( unsigned short int d = 0; d < D; d ++ )
-			fprintf( stdout, "%f\t", p[n].x[d] );
+	/* pointer to first particle structure */
+	struct ptcl *ptr = p;
 
+	for ( unsigned int n = 0; n < nMax; n ++ ) {
+		/* print particle number */
+		fprintf( stdout, "%u\t", n );
+		/* print coordinate values */
+		for ( unsigned short int d = 0; d < D; d ++ )
+			fprintf( stdout, "%f\t", *( (*ptr).x + d ) );
+
+		/* break line */
 		fprintf( stdout, "\n" );
+		/* update pointer */
+		ptr ++;
 	}
 } /* -----  end of method Sistema::print_x  ----- */
 
@@ -345,13 +423,16 @@ Sistema::crash_time ( unsigned int i, unsigned int j ) {
 	/* auxiliary variable: translation for coordinates */
 	signed short int t[D];
 	float r_ij[D];
-	/* cycle over all possible particle image */
-	for ( t[0] = -1; t[0] < 2; t[0] ++ )
-		for (  t[2] = -1; t[2] < 2; t[2] ++ )
-			for ( t[1] = -1; t[1] < 2; t[1] ++ ) {
 
-				for ( unsigned short int d = 0; d < D; d ++ )
-					*( r_ij + d ) = *( R_ij + d ) + (float) *( t + d );
+	/* cycle over all possible particle image */
+	for ( t[0] = -1; t[0] < 2; t[0] ++ ) {
+		*r_ij = *R_ij + (float) *t;
+
+		for (  t[2] = -1; t[2] < 2; t[2] ++ ) {
+			*( r_ij + 2 ) = *( R_ij + 2 ) + (float) *( t + 2 );
+
+			for ( t[1] = -1; t[1] < 2; t[1] ++ ) {
+				*( r_ij + 1 ) = *( R_ij + 1 ) + (float) *( t + 1 );
 
 				/* evaluate collision time */
 				float tmp = sp( r_ij, v_ij );
@@ -363,9 +444,9 @@ Sistema::crash_time ( unsigned int i, unsigned int j ) {
 					/* evaluate discriminant */
 					delta -= v2 * ( sp( r_ij ) - S * S );
 
-					if ( delta > (float) 0  ) {
+					if ( delta >= (float) 0  ) {
 						/* collision time */
-						delta = -( tmp - sqrt( delta ) ) / v2;
+						delta = -( tmp + sqrt( delta ) ) / v2;
 //						printf( "delta2: %f\n", delta );
 
 						if ( time > delta ) 
@@ -373,9 +454,50 @@ Sistema::crash_time ( unsigned int i, unsigned int j ) {
 					}
 				}
 			}
+		}
+	}
 
 	return time;
 } /* -----  end of method Sistema::crash_time  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: exchange
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Sistema::exchange ( /* unsigned int i, unsigned int j */ ) {
+	unsigned int i = i0, j = j0;
+
+	/* now distance from i0 to j0 is S (\sigma, sphere diameter) */
+	float R_ij[D], v_ij[D];
+	/* assign initial values */
+	for ( unsigned short int d = 0; d < D; d ++ ) {
+		/* positions */
+		*( R_ij + d ) = *( (*( p + i )).x + d ) - *( (*( p + j )).x + d );
+		/* impose cyclic conditions */
+		*( R_ij + d ) -= round( *( R_ij + d ) );
+	
+		/* velocity components */
+		*( v_ij + d ) = *( (*( p + i )).v + d ) - *( (*( p + j )).v + d );
+	}
+
+	float dv = Sistema::sp ( v_ij, R_ij ) / ( S * S );
+	for ( unsigned short int d = 0; d < D; d ++ ) {
+//		fprintf( stderr, "(%u) v_%hu = %f\t", i, d, *( (*( p + i )).v + d ));
+		
+		*( (*( p + i )).v + d ) -= dv * *( R_ij + d );
+
+//		fprintf( stderr, "(%u) v_%hu = %f\t", i, d, *( (*( p + i )).v + d ));
+//		fprintf( stderr, "(%u) v_%hu = %f\t", j, d, *( (*( p + j )).v + d ));
+		
+		*( (*( p + j )).v + d ) += dv * *( R_ij + d );
+		
+//		fprintf( stderr, "(%u) v_%hu = %f\n", j, d, *( (*( p + j )).v + d ));
+	}
+} /* -----  end of method Sistema::exchange  ----- */
 
 /*
  * ------------------------------------------------------------------
