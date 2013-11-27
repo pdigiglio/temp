@@ -4,6 +4,8 @@
 *.swp
 # images
 *.jpeg
+*.gif
+*.pdf
 # .log files
 *.log
 # GNUplot files
