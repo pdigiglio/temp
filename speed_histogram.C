@@ -12,14 +12,14 @@ double maxwell ( double *x, double *p ) {
 	unsigned int n = 128;
 	double kt = 2. * p[0] / ( 3. * n );
 
-	double tmp = p[1] / sqrt( 2. * TMath::Pi() * kt );
+	double tmp = 1. / sqrt( 2. * TMath::Pi() * p[0] );
 
-	return TMath::Exp( - x[0] * x[0] / ( 2. * kt )) * tmp; 
+	return TMath::Exp( - x[0] * x[0] / ( 2. * p[0] )) * tmp; 
 }
 
 void speed_histogram ( TString input = "histo.dat" ) {
 	/* dichiaro l'istogramma */
-	TH1F *histo = new TH1F( "Dati", "Speed distribution (x axis)", NBIN, MIN, MAX);
+	TH1D *histo = new TH1D( "Dati", "Speed distribution (x axis)", NBIN, MIN, MAX);
 	
 	/* riempio l'istogramma */
 	ifstream inFile ( input, ios::in );
@@ -30,6 +30,15 @@ void speed_histogram ( TString input = "histo.dat" ) {
 	}
 	inFile.close();
 
+	/* normalizzo l'istogramma */
+//	(*histo).ComputeIntegral();
+//	double integral = (*histo).Integral();
+//	printf( "Integrale: %g\n", integral );
+
+//	(*histo).Scale( 1. / (*histo).Integral() );
+
+	printf( "Integrale: %g\n", (*histo).Integral() );
+
 	(*gROOT).SetStyle("Plain");
 	(*gStyle).SetPalette();
 	(*gStyle).SetOptStat();
@@ -38,15 +47,15 @@ void speed_histogram ( TString input = "histo.dat" ) {
 	/*INTERPOLAZIONE */
 	TCanvas *c_1 = new TCanvas();
 	/* funzione gaussiana (signal) */
-	TF1 *fit = new TF1("maxwell", maxwell, MIN, MAX, 2 );
-	(*fit).SetParameters( 60., 3000 );
+	TF1 *fit = new TF1("maxwell", maxwell, MIN, MAX, 1 );
+	(*fit).SetParameter( 0, 0.); //, 3000 );
 	(*fit).SetParName( 0, "E_{c}" );
-	(*fit).SetParName( 1, "Norm." );
+//	(*fit).SetParName( 1, "Norm." );
 
 	/* 7 = ciano */
-	(*fit).SetLineColor(7);
+//	(*fit).SetLineColor(7);
 	/* interpolo tra 3 e 7 */
-	(*histo).Fit("maxwell");
+//	(*histo).Fit("maxwell");
 //	
 //	/* funzione parabolica */
 //	TF1 *back_func = new TF1("back_func", background, xMin, xMax, 3);
@@ -61,6 +70,7 @@ void speed_histogram ( TString input = "histo.dat" ) {
 //	*/
 //	(*histo).Fit("back_func", "+");
 
+//	(*histo).DrawNormalized();
 	(*histo).Draw();
 	(*c_1).Print( "histo.gif", "gif");
 	(*c_1).Print( "histo.pdf", "pdf");
