@@ -1,5 +1,6 @@
 #include "part_libere.h"
 #include "colors.h"
+#include "round.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +48,7 @@ Sistema::Sistema ( void ) {
 //	TH1 *histo = new TH1("histogram", "Scalar speed distribution", 100, -1. , 1.);
 
 	/* alloco la memoria per i tempi di collisione */
-	ct = (double **) malloc ( nMax * sizeof(double *) );
+	ct = (float **) malloc ( nMax * sizeof(float *) );
 	if ( ct == NULL ) {
 		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
 				ANSI_YELLOW "%s" ANSI_RESET 
@@ -63,6 +64,9 @@ Sistema::Sistema ( void ) {
 	register float kinetic;
 	/* indice di particella (pari/dispari) */
 	unsigned int n = 0, m;
+	/* temporary pointers */
+	struct ptcl *pn, *pm;
+
 	for ( unsigned short int i = 0; i < N; i ++ ) {
 		/* calcolo la coordinata x */
 		*x = (float) i / N;
@@ -83,27 +87,28 @@ Sistema::Sistema ( void ) {
 				m = n + 1;
 				/* azzero l'energia cinetica delle particella */
 				kinetic = (float) 0;
+				pn = p + n;
+				pm = p + m;
 				/* assegno le posizioni e le velocità */
 				for ( unsigned short int d = 0; d < D; d ++ ) {
 					/* assegno la coordinata d-esima */
-					*( (*( p + n )).x + d ) = *( x + d );
-//					fprintf( stderr, "%g\t", *( (*( p + n )).x + d ) );
+					*( (*pn).x + d ) = *( x + d );
 					/* assegno la velocità d-esima */
-					*( (*( p + n )).v + d ) = (float) 2 * rand() / RAND_MAX - 1;
+					*( (*pn).v + d ) = (float) 2 * rand() / RAND_MAX;
 
 					/* assegno la coordinata traslata */
-					*( (*( p + m )).x + d ) = *( y + d );
+					*( (*pm).x + d ) = *( y + d );
 					/* assegno la velocità (cambiata di segno) */
-					*( (*( p + m )).v + d ) = - *( (*( p + n )).v + d );
+					*( (*pm).v + d ) = - *( (*pn).v + d );
 
 					/* calcolo l'energia cinetica */
-					kinetic += *( (*( p + n )).v + d ) * *( (*( p + n )).v + d );
+					kinetic += *( (*pn).v + d ) * *( (*pn).v + d );
 				}
 //				fprintf( stderr, "\n" );
 
 				/* memoria per i tempi di collisione (n = m - 1) */
-				*( ct + n ) = (double *) malloc ( n * sizeof(double) );
-				*( ct + m ) = (double *) malloc ( m * sizeof(double) );
+				*( ct + n ) = (float *) malloc ( n * sizeof(float) );
+				*( ct + m ) = (float *) malloc ( m * sizeof(float) );
 				if ( ! ( *( ct + n ) && *( ct + n ) ) ) {
 					fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
 							ANSI_YELLOW "%s" ANSI_RESET 
@@ -163,7 +168,7 @@ Sistema::mass_center_speed ( void ) {
 //		printf( "\n" );
 	}
 	fprintf( stderr, "[" ANSI_CYAN "info" ANSI_RESET
-			"] Center of mass velocity: (%f, %f, %f)\n", tmp[0], tmp[1], tmp[2] );
+			"] Center of mass velocity: (%1.6g, %1.6g, %1.6g)\n", tmp[0], tmp[1], tmp[2] );
 } /* -----  end of method Sistema::mass_center_speed  ----- */
 
 /*
@@ -266,7 +271,7 @@ Sistema::sp ( float *a ) {
  * Description: 
  * ------------------------------------------------------------------
  */
-double
+float
 Sistema::next_crash ( void ) {
 	/* XXX */
 	i0 = 1; j0 = 0;
@@ -291,13 +296,14 @@ Sistema::next_crash ( void ) {
  */
 void
 Sistema::evolve ( void ) {
-	double time = next_crash();
+	/* take colliding time */
+	float time = next_crash();
 
 //	histo = new TH1F("histogram", "Scalar speed distribution\n(crash)", 100, -1. , 1.);
 
 	/* evolve particle positions */
-	double t = time - tm;
-//	printf( "dt: %f\n", t );
+	float t = time - tm;
+//	printf( "\ndt: %f, t %f, dt / t: %f\n", t, time, t / time );
 	for ( unsigned int n = 0; n < nMax; n ++ ) {
 //		if ( !( crash % ( 2 * nMax ) ) && crash )
 //			histo -> Fill( p[n].v[0] );
@@ -310,6 +316,11 @@ Sistema::evolve ( void ) {
 //	histo->Draw();
 //	c->Print( "nome.svg", "svg");
 
+	/* update mean collision time */
+	*tau += t;
+	*( tau + 1 ) += t * t;
+
+	/* update crash number*/
 	crash ++;
 
 	/* update colliding particles velocities */
@@ -319,6 +330,8 @@ Sistema::evolve ( void ) {
 
 	/* update system time */
 	tm += t;
+
+//	Sistema::mass_center_speed();
 } /* -----  end of method Sistema::evolve  ----- */
 
 /*
@@ -341,7 +354,7 @@ Sistema::get_velocity ( unsigned int n, unsigned short int d ) {
  * ------------------------------------------------------------------
  */
 void
-Sistema::update_crash_times ( double t0 = 0. ) {
+Sistema::update_crash_times ( float t0 = (float) 0 ) {
 //	register unsigned int j;
 //	float **pt;
 //	for ( unsigned int i = 1; i < nMax; i ++ ) {
@@ -350,7 +363,7 @@ Sistema::update_crash_times ( double t0 = 0. ) {
 //			*( *pt + j ) = Sistema::crash_time( i, j );
 //	}
 
-	double **pt = ct + i0;
+	float **pt = ct + i0;
 	register unsigned int j;
 
 	for ( j = 0; j < i0; j ++ )
@@ -463,6 +476,27 @@ Sistema::crash_time ( unsigned int i, unsigned int j ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
+ *      Method: mct
+ * Description: mean collision time
+ * ------------------------------------------------------------------
+ */
+void
+Sistema::mct ( void ) {
+	*tau = (float) *tau / crash;
+	*( tau + 1 ) = (float) *( tau + 1 ) / crash;
+	*( tau + 1 ) -= *tau * *tau;
+
+	printf( "%Lf\t%Lf\n", tau[0], sqrtl( tau[1] / crash ) );
+	round( *tau, sqrtl( *( tau + 1 )  / crash ) );
+	printf( "\n" );
+//
+	
+	return;
+} /* -----  end of method Sistema::mct  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
  *      Method: exchange
  * Description: 
  * ------------------------------------------------------------------
@@ -485,6 +519,11 @@ Sistema::exchange ( /* unsigned int i, unsigned int j */ ) {
 	}
 
 	float dv = Sistema::sp ( v_ij, R_ij ) / ( S * S );
+	
+	/* evaluate pression */
+	*press += fabs( dv );
+	*( press + 1 ) += dv * dv;
+
 	for ( unsigned short int d = 0; d < D; d ++ ) {
 //		fprintf( stderr, "(%u) v_%hu = %f\t", i, d, *( (*( p + i )).v + d ));
 		
@@ -512,12 +551,53 @@ Sistema::exchange ( /* unsigned int i, unsigned int j */ ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
+ *      Method: time_reset
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Sistema::time_reset ( void ) {
+	float **ptr;
+	register unsigned int j;
+	for ( unsigned int i = 1; i < nMax; i ++ ) {
+		ptr = ct + i;
+		for ( j = 0; j < i; j ++ ) {
+			*( *ptr + j ) -= tm;
+		}
+	}
+
+	tm = (float) 0;
+} /* -----  end of method Sistema::time_reset  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
  *      Method: ~Sistema
  * Description: destructor
  * ------------------------------------------------------------------
  */
 Sistema::~Sistema (void) {
 } /* -----  end of method Sistema::~Sistema (dtor)  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: pression
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Sistema::pression ( void ) {
+	*( press ) = *( press ) / tm;
+	*( press + 1 ) = sqrt ( *( press + 1 ) / tm - *press * *press );
+
+	for ( unsigned short int k = 0; k < 2; k ++ )
+		*( press + k ) = S * *( press + k ) / ( 2. * K );
+
+	press[0] ++;
+
+	printf( "Pressione: %g +- %g\n", press[0], press[1] / sqrt( tm ) );
+} /* -----  end of method Sistema::pression  ----- */
 
 /*
  * ------------------------------------------------------------------

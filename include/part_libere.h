@@ -26,10 +26,13 @@ class Sistema {
 		float get_velocity( unsigned int n, unsigned short d = 0 );
 
 		void evolve ( void );
+		void pression (void) ;
 
+		void time_reset ( void );
 		/* print particle coordinates */
 		void print_x ( void );
 
+		void mct ( void );
 		/* numero massimo di particelle nel volume */
 		const unsigned long int nMax = (unsigned long) 2 * powl( N, D );
 
@@ -49,17 +52,19 @@ class Sistema {
 //			unsigned int crash = 0;
 		} *p = NULL;
 
-		double tm = (float) 0;
+		float tm = (float) 0;
+		long double tau[2] = {};
 
 		/* colliding particles */
 		unsigned int i0, j0;
 
 		/* matrice dei tempi di collisione */
-		double **ct = NULL;
+		float **ct = NULL;
 
 		/* energia cinetica totale (m = 1) */
 		float K = (float) 0;
-//
+		float press[2] = {};
+
 //		TCanvas *c = new TCanvas( "titolo" );
 //		TH1F *histo = new TH1F( "histogram", "Scalar speed distribution (complessive)", 150, -3., 3. );
 
@@ -70,7 +75,7 @@ class Sistema {
 		/* if only 'a' is given, returns his square modulus */
 		float sp ( float *a );
 		/* takes next crash */
-		double next_crash ( void );
+		float next_crash ( void );
 
 		/* exchange particle velocity along r_ij axis */
 		void exchange ( /* unsigned int i = i0, unsigned int j = j0 */ );
@@ -81,7 +86,7 @@ class Sistema {
 		/* speed of center of mass system */
 		void mass_center_speed ( void );
 
-		void update_crash_times ( double t0 );
+		void update_crash_times ( float t0 );
 //	protected:
 }; /* -----  end of class Sistema  ----- */
 
