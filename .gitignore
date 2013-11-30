@@ -9,7 +9,7 @@
 # .log files
 *.log
 # GNUplot files
-*.gpl
+#*.gpl
 # data files
 *.dat
 # executable
