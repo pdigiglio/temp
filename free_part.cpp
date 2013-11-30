@@ -20,17 +20,21 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <string.h>
+#include <errno.h>
 #include <time.h>
+
 #include <math.h>
 
 #include "colors.h"
+#include "eta.h"
 #include "part_libere.h"
 #include "info_time.h"
 #include "round.h"
 
-#include "TH1D.h"
-
-#define TERM	3
+/* cycle to termalize system */
+#define TERM	3 
 
 /* 
  * ===  FUNCTION  ===================================================
@@ -49,62 +53,90 @@ main ( /* int argc, char *argv[] */ ) {
 	Sistema s;
 
 	/* termalizzo */
-	register unsigned int j;
-
-	for ( unsigned int k = 0; k < 1; k ++ ) {
-		for ( j = 0; j < s.nMax; j ++ ) {
-//			fprintf ( stderr, ANSI_RED "%lu\n" ANSI_RESET, k * s.nMax + j );
+	register unsigned int j, k;
+	for ( k = 0; k < TERM; k ++ ) {
+		for ( j = 0; j < s.nMax; j ++ )
 			s.evolve();
-//			s.time_reset();
-		}
-
-//		s.time_reset();
 	}
+	
+	/* reset pressure */
+	s.reset_pr();
 
 	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET ": "
 			ANSI_YELLOW "%s" ANSI_RESET
 			"] Termalization executed (%lu collisions).\n",
 			__func__, TERM * s.nMax );
-			
-//	TH1D *histo = new TH1D( "Dati", "Speed distribution (x axis)", 100, -3., 3. );
-//	TCanvas *c = new TCanvas();
-//
-//	/* output-file name */
-//	char f_file_name[] = "histo.dat"; 
-//	FILE *f = fopen( f_file_name, "w" );
-//	if ( f == NULL ) {
-//		fprintf ( stderr, "couldn't open file '%s'; %s\n",
-//				f_file_name, strerror(errno) );
-//		exit (EXIT_FAILURE);
-//	}
-//
-//	for ( unsigned int k = 0 ; k < 1000; k ++ ) {
-//		for ( j = 0; j < s.nMax; j ++ ) {
-////			printf( ANSI_RED "%hu" ANSI_RESET "\n", j );
-//			s.evolve();
-//		}
-//		
-//		/* raccolgo le misure delle velocità */
-//		for ( j = 0; j < s.nMax; j ++ ) {
-//////			fprintf( f, "%f\n", s.get_velocity( j, 2 ) );
-//			(*histo).Fill( s.get_velocity(j) );
-//		}
-//
-//		s.time_reset();
-////
-//	}
-//
-//	if( fclose(f) == EOF ) { /* close output file */
-//		fprintf ( stderr, "couldn't close file '%s'; %s\n",
-//				f_file_name, strerror(errno) );
-//		exit (EXIT_FAILURE);
-//	}
-//
-//	(*histo).Draw();
-//	(*c).Print( "New_histo.gif", "gif" );
-//
-//	s.pression();
-//	s.mct();
+
+	
+	/*-------------------------------------------------------------------
+	 *  Misure
+	 *-----------------------------------------------------------------*/
+	char speed_file_name[] = "speed.dat";
+	FILE *speed = fopen( speed_file_name, "w" );
+	if ( speed == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				speed_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	double p[2] = {}, ptemp;
+	double t;
+	for ( k = 0 ; k < 100; k ++ ) {
+		/* save time before cycle */
+		t = s.get_time();
+
+		/* evolve system and print collision delta times */
+		for ( j = 0; j < s.nMax; j ++ )
+			fprintf( stdout, "%g\n", s.evolve() );
+
+		/* take velocity measures */
+		for ( j = 0; j < s.nMax; j ++ )
+			fprintf( speed, "%.16g\n", s.get_velocity(j) );
+
+		/* measure pressure */
+		ptemp = s.get_pr() / ( s.get_time() - t );
+		*p += ptemp;
+		*( p + 1 ) += ptemp * ptemp;
+
+		/* reset pressure */
+		s.reset_pr();
+
+//		s.mass_center_speed();
+	}
+
+	if( fclose(speed) == EOF ) { /* close output file */
+		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				speed_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	/* normalize pressure */
+	*p = (double) *p / k;
+	*( p + 1 ) = (double) *( p + 1 ) / k;
+	*( p + 1 ) -= *p * *p;
+	*( p + 1 ) = sqrt( *( p + 1 ) / ( k - 1 ) );
+	for ( j = 0; j < 2; j ++ )
+		*( p + j ) = (double) s.S * *( p + j ) / ( 2 * s.get_K() );
+
+	/* output-file name */
+	char press_file_name[] = "pression.dat"; 
+	FILE *press = fopen( press_file_name, "a" );
+	if ( press == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				press_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+	
+	fprintf( press, "%g\t", E );
+	/* prints rounded value in 'press' file */
+	round( *p, *( p + 1 ), press );
+	fprintf( press, "\n" );
+
+	if( fclose(press) == EOF ) { /* close output file */
+		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				press_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
 
 	/* print execution time */
 	print_exe_time( begin, __func__ );

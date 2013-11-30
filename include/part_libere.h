@@ -1,13 +1,11 @@
 #define D 3		/* dimensioni del problema */
 #define N 4	/* sqrt[D]( numero particelle / 2 ) */
-#define E .2	/* frazione d'impacchettamento $\eta$ */
 
-//#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
-#include "TH1F.h"
-#include "TCanvas.h"
+/* packing fraction */
+#include "eta.h"
 
 #ifndef  part_libere_INC
 #define  part_libere_INC
@@ -23,10 +21,16 @@ class Sistema {
 		Sistema ( void ); /* ctor */
 		~Sistema ( void ); /* dtor */
 
-		float get_velocity( unsigned int n, unsigned short d = 0 );
+		double get_time ( void );
+		double get_pr ( void );
+		double get_velocity( unsigned int n, unsigned short d = 0 );
+		double get_K ( void );
+		double get_KT ( void );
 
-		void evolve ( void );
-		void pression (void) ;
+		void reset_pr ( double val = (double) 0 );
+
+		double evolve ( void );
+		void pression (void);
 
 		void time_reset ( void );
 		/* print particle coordinates */
@@ -36,57 +40,57 @@ class Sistema {
 		/* numero massimo di particelle nel volume */
 		const unsigned long int nMax = (unsigned long) 2 * powl( N, D );
 
-	private:
 		/* 
 		 * raggio delle sfere
 		 *
 		 * XXX Nel passaggio da 2-D e 3-D i coefficienti e le potenze
 		 * cambiano (a causa del passaggio area -> volume).
 		 */
-		const float S = pow( (float) 6 * E / ( nMax * M_PI ), (float) 1 / D );
+//		const double S = (double) 2 * sqrt( (double) E / ( nMax * M_PI ) );
+		const double S = pow( (double) 6 * E / ( nMax * M_PI ), (double) 1 / D );
+
+		/* speed of center of mass system */
+		void mass_center_speed ( void );
+	private:
 
 		/* record che rappresenta una particella */
 		struct ptcl {
-			float x[3]; /* posizione della particella */
-			float v[3]; /* velocità della particella */
+			double x[3]; /* posizione della particella */
+			double v[3]; /* velocità della particella */
 //			unsigned int crash = 0;
+//			double t[2] = {};
 		} *p = NULL;
 
-		float tm = (float) 0;
+		double tm = (double) 0;
 		long double tau[2] = {};
 
 		/* colliding particles */
 		unsigned int i0, j0;
 
 		/* matrice dei tempi di collisione */
-		float **ct = NULL;
+		double **ct = NULL;
 
 		/* energia cinetica totale (m = 1) */
-		float K = (float) 0;
-		float press[2] = {};
-
-//		TCanvas *c = new TCanvas( "titolo" );
-//		TH1F *histo = new TH1F( "histogram", "Scalar speed distribution (complessive)", 150, -3., 3. );
+		double K = (double) 0;
+		double pr = (double) 0;
 
 		unsigned int crash = 0;
 
 		/* scalar product */
-		float sp ( const float *a, const float *b );
+		double sp ( const double *a, const double *b );
 		/* if only 'a' is given, returns his square modulus */
-		float sp ( float *a );
+		double sp ( const double *a );
+
+
 		/* takes next crash */
-		float next_crash ( void );
+		double next_crash ( void );
 
 		/* exchange particle velocity along r_ij axis */
 		void exchange ( /* unsigned int i = i0, unsigned int j = j0 */ );
 		/* collision time of particle 'i' with particle 'j' */
-		float crash_time ( unsigned int i, unsigned int j );
-		/* Checks if particles can be contained in volume */
-		void capacity_check ( void );
-		/* speed of center of mass system */
-		void mass_center_speed ( void );
+		double crash_time ( unsigned int i, unsigned int j );
 
-		void update_crash_times ( float t0 );
+		void update_crash_times ( double t0 );
 //	protected:
 }; /* -----  end of class Sistema  ----- */
 
