@@ -1,0 +1,44 @@
+def = "speed"
+if ( ! exists("filename") ) \
+	print "Searching for default file ".def.".dat";\
+	filename = def; \
+else \
+	print "File name ".filename.".dat";
+
+set font "Helvetica,12"
+
+# Eseguo un'analisi del file in input
+stats filename.".dat" using 1
+
+# Numero dei bin
+bins = 100
+# Calcolo la dimensione del bin
+binwidth = ( STATS_max - STATS_min ) / bins
+# Fattore di normalizzazione
+Norm = STATS_records * binwidth
+
+# Funzione per creare i bin
+bin(x, width) = width * floor( x / width )
+
+show variables all
+
+set grid 
+set xrange [STATS_min:STATS_max]
+
+lab =  sprintf( "Data\n".\
+				"Entries:\t%G\n".\
+				"Mean:\t%E\n".\
+				"St. Dev:\t%E",\
+				STATS_records,\
+				STATS_mean,\
+				STATS_stddev )
+
+#set label right
+#set label lab at .6 * STATS_max, 2500
+
+#plot exp( - x /STATS_mean ) / STATS_mean title "exp( - t/t_0) / t_0 ",\
+#plot exp( - ((x - STATS_mean)**2)/(2 * STATS_stddev**2 ) ) / (sqrt(2 * pi) * STATS_stddev),\ 
+
+plot filename.".dat" using ( bin( $1, binwidth ) ):(1.0 / Norm ) smooth freq with boxes title lab
+
+unset label
