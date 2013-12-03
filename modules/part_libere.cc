@@ -45,8 +45,6 @@ Sistema::Sistema ( void ) {
 			"Number :: radius of particles (with N = %u) >> %lu :: %1.1g L\n",
 			(unsigned) N, (unsigned long) nMax, S );
 
-//	TH1 *histo = new TH1("histogram", "Scalar speed distribution", 100, -1. , 1.);
-
 	/* alloco la memoria per i tempi di collisione */
 	ct = (double **) malloc ( nMax * sizeof(double *) );
 	if ( ct == NULL ) {
@@ -211,6 +209,38 @@ Sistema::sp ( const double *a ) {
 
 	return tmp;
 } /* -----  end of method Sistema::sp  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: shell_sort
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Sistema::shell_sort ( double **a = list , unsigned long int n = nMax ) {
+
+	/* TODO find a way to evaluate this array */
+    static unsigned int c[] = { 4356424, 1355339, 543749, 213331, 84801, 27901,
+                    11969, 4711, 1968, 815, 277, 97, 31, 7, 3, 1 };
+
+	/* TODO properly comment this code */
+	register unsigned int i, j;
+	unsigned int h;
+
+	double *tmp;
+    for ( unsigned short int k = 0; k < 16; k ++ ) {
+		h = *( c + k );
+		for ( i = h; i < n; i ++ ) {
+			tmp = *( a + i );
+
+			for ( j = i; j >= h && **( a + j - h ) > *tmp; j -= h )
+                *( a + j ) = *( a + j - h );
+
+            *( a + j ) = tmp;
+        }
+    }
+} /* -----  end of method Sistema::shell_sort  ----- */
 
 /*
  * ------------------------------------------------------------------

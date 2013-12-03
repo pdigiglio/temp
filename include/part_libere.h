@@ -38,7 +38,7 @@ class Sistema {
 
 		void mct ( void );
 		/* numero massimo di particelle nel volume */
-		const unsigned long int nMax = (unsigned long) 2 * powl( N, D );
+		const static unsigned long int nMax = (unsigned long) 2 * powl( N, D );
 
 		/* 
 		 * raggio delle sfere
@@ -69,6 +69,8 @@ class Sistema {
 
 		/* matrice dei tempi di collisione */
 		double **ct = NULL;
+		/* sorted list of collision times */
+		double **list = NULL;
 
 		/* energia cinetica totale (m = 1) */
 		double K = (double) 0;
@@ -84,6 +86,9 @@ class Sistema {
 
 		/* takes next crash */
 		double next_crash ( void );
+
+		/* shell sort algorithm */
+		void shell_sort ( double *a, unsigned long int n );
 
 		/* exchange particle velocity along r_ij axis */
 		void exchange ( /* unsigned int i = i0, unsigned int j = j0 */ );
