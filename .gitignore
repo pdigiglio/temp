@@ -5,6 +5,7 @@
 # images
 *.jpeg
 *.gif
+*.png
 *.pdf
 # .log files
 *.log
