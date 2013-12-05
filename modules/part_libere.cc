@@ -29,6 +29,17 @@
  * ------------------------------------------------------------------
  */
 Sistema::Sistema ( void ) {
+	/* controllo di non aver inserito troppe particelle nella scatola */
+	if ( 2 * S > sqrt( D ) / N ) {
+		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
+				ANSI_YELLOW "%s" ANSI_RESET 
+				"] Sphere radius too high!\n"
+				" >> Line %u of file '%s'\n",
+				__func__, __LINE__, __FILE__ );
+		exit (EXIT_FAILURE);
+
+	}
+
 	/* alloco la memoria per le particelle */
 	p = (struct ptcl *) malloc( nMax * sizeof( struct ptcl ) );
 	if ( p == NULL ) {
@@ -66,6 +77,7 @@ Sistema::Sistema ( void ) {
 	/* temporary pointers */
 	struct ptcl *pn, *pm;
 	double **cn, **cm;
+	double **l = list;
 
 	for ( unsigned short int i = 0; i < N; i ++ ) {
 		/* calcolo la coordinata x */
@@ -124,11 +136,21 @@ Sistema::Sistema ( void ) {
 				cm = ct + m;
 				for ( q = 0; q < n; q ++ ) {
 					*( *cn + q ) = crash_time( q, n );
+
+					/* assign list pointers */
+					*( l ++ ) = *cn + q;
+
 //					fprintf( stderr, "(%u, %u) %g\n", n, q, *( *( ct + n ) + q ) );
+					
 					*( *cm + q ) = crash_time( q, m );
+					*( l ++ ) = *cm + q;
+
 //					fprintf( stderr, "(%u, %u) %g\n", m, q, *( *( ct + m ) + q ) );
 				}
-				*( *( ct + m ) + q ) = crash_time( q, m);
+				*( *cm + q ) = crash_time( q, m);
+				*( l ++ ) = *cm + q;
+//				printf( "%zu\t%lu\n", l - list, e );
+
 //				fprintf( stderr, "(%u, %u) %g\n", m, q, *( *( ct + m ) + q ) );
 
 				/* aggiorno l'indice della particella (pari) */
@@ -141,9 +163,32 @@ Sistema::Sistema ( void ) {
 		}
 	}
 
+	/* creo l'array delle colonne */
+	unsigned long int v = 0;
+	unsigned long t1 = 9, t2 = 9;
+	while ( v < e ) {
+		c = (unsigned *) realloc( c, ( ++ L ) * sizeof(unsigned) );
+		if ( c == NULL ) {
+			fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
+					ANSI_YELLOW "%s" ANSI_RESET 
+					"] Dynamic memory allocation failed!\n"
+					" >> Line %u of file '%s'\n",
+					__func__, __LINE__, __FILE__ );
+			exit (EXIT_FAILURE);
+		}
+
+		*( c + L - 1 ) = v + 1;
+
+		/* aggiorno il termine generale */
+		t1 = t1 * 4;
+		t2 = t2 * 2;
+		v = t1 - t2;
+	}
+
 	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET
 			"] Initial kinetic energy: %g\n", K );
 
+//	exit( EXIT_SUCCESS );
 	/* stampa la velocità del centro di massa */
 //	Sistema::mass_center_speed();
 }/* -----  end of method Sistema::Sistema (ctor)  ----- */
@@ -218,28 +263,33 @@ Sistema::sp ( const double *a ) {
  * ------------------------------------------------------------------
  */
 void
-Sistema::shell_sort ( double **a = list , unsigned long int n = nMax ) {
-
-	/* TODO find a way to evaluate this array */
-    static unsigned int c[] = { 4356424, 1355339, 543749, 213331, 84801, 27901,
-                    11969, 4711, 1968, 815, 277, 97, 31, 7, 3, 1 };
-
+Sistema::shell_sort ( void ) {
 	/* TODO properly comment this code */
 	register unsigned int i, j;
 	unsigned int h;
 
 	double *tmp;
-    for ( unsigned short int k = 0; k < 16; k ++ ) {
+    for ( unsigned short int k = 0; k < L; k ++ ) {
 		h = *( c + k );
-		for ( i = h; i < n; i ++ ) {
-			tmp = *( a + i );
+		for ( i = h; i < e; i ++ ) {
+			tmp = *( list + i );
 
-			for ( j = i; j >= h && **( a + j - h ) > *tmp; j -= h )
-                *( a + j ) = *( a + j - h );
+			for ( j = i; j >= h && **( list + j - h ) > *tmp; j -= h )
+                *( list + j ) = *( list + j - h );
 
-            *( a + j ) = tmp;
+            *( list + j ) = tmp;
         }
     }
+
+
+		printf( "%.16g\n", **( list ) );
+//	for ( unsigned int k = 0; k < e; k ++ ) {
+//		printf( "%g\n", **( list + k ) );
+//		if ( **( list + k ) == HUGE_VAL ) {
+//			printf( "\n" );
+ //			k = e + 1;
+//		}
+//	}
 } /* -----  end of method Sistema::shell_sort  ----- */
 
 /*
@@ -251,6 +301,7 @@ Sistema::shell_sort ( double **a = list , unsigned long int n = nMax ) {
  */
 double
 Sistema::next_crash ( void ) {
+	
 	/* XXX */
 	i0 = 1; j0 = 0;
 	double minimum = ct[1][0];
@@ -261,8 +312,22 @@ Sistema::next_crash ( void ) {
 				i0 = n; j0 = m;
 			}
 
+
 //	fprintf( stderr, "[] Minimo: %g. Particelle %u - %u\n", minimum, i0, j0 );
 	return minimum;
+
+//	unsigned long int 
+
+	/* XXX for shell sort */
+//	j0 = nMax + 1;
+//	for ( i0 = nMax; j0 > i0; i0 -- ) {
+//		j0 = (size_t) ( *( ct + i0 ) - *list );
+//		printf( "%d, %u, %g\n", i0, j0, **list );
+//	}
+//
+//
+//	/* return lower collision time */
+//	return ** list;
 } /* -----  end of method Sistema::netx_crash  ----- */
 
 /*
@@ -274,6 +339,8 @@ Sistema::next_crash ( void ) {
  */
 double
 Sistema::evolve ( void ) {
+	/* sort collision times */
+//	Sistema::shell_sort();
 	/* take colliding time */
 	double t = Sistema::next_crash() - tm;
 
@@ -347,7 +414,6 @@ Sistema::update_crash_times ( double t0 = (double) 0 ) {
 
 	for ( j = j0 + 1; j < nMax; j ++ )
 		*( *( ct + j ) + j0 ) = t0 + Sistema::crash_time( j0, j );
-
 } /* -----  end of method Sistema::update_crash_times  ----- */
 
 /*
@@ -581,6 +647,8 @@ Sistema::time_reset ( void ) {
  * ------------------------------------------------------------------
  */
 Sistema::~Sistema (void) {
+	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET ": "
+			ANSI_YELLOW "%s" ANSI_RESET "] destructed.\n", __func__ );
 } /* -----  end of method Sistema::~Sistema (dtor)  ----- */
 
 /*

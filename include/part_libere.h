@@ -1,5 +1,5 @@
 #define D 3		/* dimensioni del problema */
-#define N 4	/* sqrt[D]( numero particelle / 2 ) */
+#define N 2	/* sqrt[D]( numero particelle / 2 ) */
 
 #include <stdlib.h>
 #include <math.h>
@@ -57,6 +57,7 @@ class Sistema {
 		struct ptcl {
 			double x[3]; /* posizione della particella */
 			double v[3]; /* velocità della particella */
+			double t_last = (double) 0;
 //			unsigned int crash = 0;
 //			double t[2] = {};
 		} *p = NULL;
@@ -69,9 +70,14 @@ class Sistema {
 
 		/* matrice dei tempi di collisione */
 		double **ct = NULL;
+		/* nomber of list entries */
+		static const unsigned long int e = ( nMax ) * ( nMax - 1) / 2;
 		/* sorted list of collision times */
-		double **list = NULL;
-
+		double *list[e];
+		/* find a way to evaluate this array */
+		unsigned int L = 0;
+		unsigned int *c = NULL;
+		
 		/* energia cinetica totale (m = 1) */
 		double K = (double) 0;
 		double pr = (double) 0;
@@ -88,7 +94,7 @@ class Sistema {
 		double next_crash ( void );
 
 		/* shell sort algorithm */
-		void shell_sort ( double *a, unsigned long int n );
+		void shell_sort ( void );
 
 		/* exchange particle velocity along r_ij axis */
 		void exchange ( /* unsigned int i = i0, unsigned int j = j0 */ );

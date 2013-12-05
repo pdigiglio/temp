@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX		3.
-#define MIN		- MAX
+#define MAX		.004
+#define MIN		0.
 #define NBIN	100
 
 using namespace std;
@@ -19,7 +19,7 @@ double maxwell ( double *x, double *p ) {
 
 void speed_histogram ( TString input = "histo.dat" ) {
 	/* dichiaro l'istogramma */
-	TH1D *histo = new TH1D( "Dati", "Speed distribution (x axis)", NBIN, MIN, MAX);
+	TH1F *histo = new TH1F( "Dati", "Speed distribution (x axis)", NBIN, MIN, MAX);
 	
 	/* riempio l'istogramma */
 	ifstream inFile ( input, ios::in );
@@ -121,5 +121,5 @@ void speed_histogram ( TString input = "histo.dat" ) {
 //		(*signal_func).Integral(xMin, xMax)	<< endl;
 //
 
-	exit(EXIT_SUCCESS);
+//	exit(EXIT_SUCCESS);
 }

@@ -34,7 +34,7 @@
 #include "round.h"
 
 /* cycle to termalize system */
-#define TERM	3 
+#define TERM	1
 
 /* 
  * ===  FUNCTION  ===================================================
@@ -55,9 +55,13 @@ main ( /* int argc, char *argv[] */ ) {
 	/* termalizzo */
 	register unsigned int j, k;
 	for ( k = 0; k < TERM; k ++ ) {
-		for ( j = 0; j < s.nMax; j ++ )
+		for ( j = 0; j < s.nMax; j ++ ) {
+			printf( "%d\n\n", j );
 			s.evolve();
+		}
 	}
+
+	exit(1);
 	
 	/* reset pressure */
 	s.reset_pr();
@@ -81,13 +85,13 @@ main ( /* int argc, char *argv[] */ ) {
 
 	double p[2] = {}, ptemp;
 	double t;
-	for ( k = 0 ; k < 100; k ++ ) {
+	for ( k = 0 ; k < 1; k ++ ) {
 		/* save time before cycle */
 		t = s.get_time();
 
 		/* evolve system and print collision delta times */
 		for ( j = 0; j < s.nMax; j ++ )
-			fprintf( stdout, "%g\n", s.evolve() );
+			fprintf( stderr, "%.16g\n", s.evolve() );
 
 		/* take velocity measures */
 		for ( j = 0; j < s.nMax; j ++ )
@@ -95,6 +99,7 @@ main ( /* int argc, char *argv[] */ ) {
 
 		/* measure pressure */
 		ptemp = s.get_pr() / ( s.get_time() - t );
+		fprintf( stdout, "%.16g\n", ptemp);
 		*p += ptemp;
 		*( p + 1 ) += ptemp * ptemp;
 
@@ -141,5 +146,6 @@ main ( /* int argc, char *argv[] */ ) {
 	/* print execution time */
 	print_exe_time( begin, __func__ );
 
-	exit(EXIT_SUCCESS);
+//	exit(EXIT_SUCCESS);
+	return 0;
 } /* ----------  end of function main  ---------- */
