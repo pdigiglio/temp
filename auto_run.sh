@@ -32,11 +32,12 @@ make_header () {
 
 
 step=35
+max=50
 E=""
 
 for i in ` seq 1 ${step}`
 do
-	echo " >> Eta: $i/50"
+	echo " >> Eta: ${i}/${max} = ` echo "scale=3; $i/${max}" | bc -l `"
 	E="$i/50"
 #	make_header
 done
