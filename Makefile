@@ -5,7 +5,7 @@
 # Main file to compile
 MAIN	= free_part
 # Modules to create
-MODULES	= part_libere round info_time
+MODULES	= particella part_libere round info_time
 
 all: $(MAIN)
 
@@ -40,7 +40,7 @@ ifneq ($(LDFLAGS),)
 	LDFLAGS += $(addprefix -L,$(LBSPATH))
 endif
 # Add ROOT libaries
-LDFLAGS += `root-config --libs --cflags`
+#LDFLAGS += `root-config --libs --cflags`
 
 # Creo l'opzione da passare al compilatore per le directory dei file 
 # .h "custom". L'opzione '-I-' indica che nelle directory specificate
