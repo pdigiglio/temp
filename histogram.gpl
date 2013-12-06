@@ -27,12 +27,12 @@ set grid
 set style fill transparent pattern 4 bo
 
 # Fattore di scala per il dominio
-scale = 1.1
+#scale = 1.1
 #max = STATS_max
 #if ( abs( STATS_min ) > abs( STATS_max ))
 #	max = STATS_min
 
-set xrange [ STATS_min: STATS_max ]
+#set xrange [ STATS_min: STATS_max ]
 
 lab =  sprintf( "Data\n".\
 				"Entries:\t%G\n".\
@@ -52,9 +52,12 @@ lab =  sprintf( "Data\n".\
 #plot exp( - x /STATS_mean ) / STATS_mean title "exp( - t/t_0) / t_0 ",\
 #plot exp( - ((x - STATS_mean)**2)/(2 * STATS_stddev**2 ) ) / (sqrt(2 * pi) * STATS_stddev), \
 
-do for [ name in "x11" ] {
-	set terminal name
-}
+#do for [ name in "x11" ] {
+#	set terminal name
+#}
+
+# Trova automaticamente il dominio
+set autoscale
 
 plot filename.".dat" using ( bin( $1, binwidth ) ):(1.0 / Norm ) smooth freq with boxes title lab
 
