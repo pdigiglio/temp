@@ -1,3 +1,4 @@
+#include "particella.h"
 #include "part_libere.h"
 #include "colors.h"
 #include "round.h"
@@ -9,17 +10,17 @@
 
 #include <math.h>
 
-#include "TH1F.h"
-#include "TF1.h"
-
-/* serve per settare il titolo degli assi */
-#include "TH1.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include "TROOT.h"
-#include "TString.h"
-#include "TGraph.h"
-#include "TGraphErrors.h"
+//#include "TH1F.h"
+//#include "TF1.h"
+//
+///* serve per settare il titolo degli assi */
+//#include "TH1.h"
+//#include "TCanvas.h"
+//#include "TStyle.h"
+//#include "TROOT.h"
+//#include "TString.h"
+//#include "TGraph.h"
+//#include "TGraphErrors.h"
 
 /*
  * ------------------------------------------------------------------
@@ -217,43 +218,6 @@ Sistema::mass_center_speed ( void ) {
 	fprintf( stderr, "[" ANSI_CYAN "info" ANSI_RESET
 			"] Center of mass velocity: (%g, %g, %g)\n", tmp[0], tmp[1], tmp[2] );
 } /* -----  end of method Sistema::mass_center_speed  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: sp
- * Description: Scalar product between two vectors, a and b, in D
- * 				dimensions
- * ------------------------------------------------------------------
- */
-double
-Sistema::sp ( const double *a, const double *b ) {
-	double tmp = (double) 0;
-	for ( unsigned short int d = 0; d < D; d ++ ) {
-		tmp += *( a + d ) * *( b + d );
-//		printf( "%g * %g ", *( a + d ), *( b + d ) );
-	}
-//	printf( "\n" );
-
-	return tmp;
-} /* -----  end of method Sistema::sp  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: sp
- * Description: The same as above. If only 'a' is given, it returns
- * 				his square modulus
- * ------------------------------------------------------------------
- */
-double
-Sistema::sp ( const double *a ) {
-	double tmp = (double) 0;
-	for ( unsigned short int d = 0; d < D; d ++ )
-		tmp += *( a + d ) * *( a + d );
-
-	return tmp;
-} /* -----  end of method Sistema::sp  ----- */
 
 /*
  * ------------------------------------------------------------------
@@ -564,8 +528,8 @@ Sistema::exchange ( /* unsigned int i, unsigned int j */ ) {
 		*( v_ij + d ) = *( (*( p + i )).v + d ) - *( (*( p + j )).v + d );
 	}
 
-	double dv = Sistema::sp ( v_ij, R_ij ) / ( S * S );
-//	printf( "%f %f\n", S, sqrt( Sistema::sp(R_ij) ) );
+	double dv = Particella::sp ( v_ij, R_ij ) / ( S * S );
+//	printf( "%f %f\n", S, sqrt( Particella::sp(R_ij) ) );
 	
 	/* evaluate pression */
 	pr += fabs( dv );

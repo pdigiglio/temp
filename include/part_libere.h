@@ -1,11 +1,12 @@
-#define D 3		/* dimensioni del problema */
-#define N 2	/* sqrt[D]( numero particelle / 2 ) */
 
 #include <stdlib.h>
 #include <math.h>
 
+#include "particella.h"
+
 /* packing fraction */
 #include "eta.h"
+#include "parameters.h"
 
 #ifndef  part_libere_INC
 #define  part_libere_INC
@@ -16,7 +17,7 @@
  *  Description: 
  * ==================================================================
  */
-class Sistema {
+class Sistema: public Particella {
 	public:
 		Sistema ( void ); /* ctor */
 		~Sistema ( void ); /* dtor */
@@ -52,16 +53,6 @@ class Sistema {
 		/* speed of center of mass system */
 		void mass_center_speed ( void );
 	private:
-
-		/* record che rappresenta una particella */
-		struct ptcl {
-			double x[3]; /* posizione della particella */
-			double v[3]; /* velocità della particella */
-			double t_last = (double) 0;
-//			unsigned int crash = 0;
-//			double t[2] = {};
-		} *p = NULL;
-
 		double tm = (double) 0;
 		long double tau[2] = {};
 
@@ -85,9 +76,9 @@ class Sistema {
 		unsigned int crash = 0;
 
 		/* scalar product */
-		double sp ( const double *a, const double *b );
-		/* if only 'a' is given, returns his square modulus */
-		double sp ( const double *a );
+//		double sp ( const double *a, const double *b );
+//		/* if only 'a' is given, returns his square modulus */
+//		double sp ( const double *a );
 
 
 		/* takes next crash */

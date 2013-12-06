@@ -132,7 +132,7 @@ main ( /* int argc, char *argv[] */ ) {
 		exit (EXIT_FAILURE);
 	}
 	
-	fprintf( press, "%g\t", E );
+	fprintf( press, "%g\t", (double) E );
 	/* prints rounded value in 'press' file */
 	round( *p, *( p + 1 ), press );
 	fprintf( press, "\n" );
