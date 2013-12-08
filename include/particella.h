@@ -1,9 +1,7 @@
-
-/* TODO separare la classe "particella" da quella di "part_libere" */
-
-#include "parameters.h"
+/* standard header */
 #include <stdio.h>
 
+#include "dimensions.h"
 
 #ifndef  particella_INC
 #define  particella_INC
@@ -17,7 +15,11 @@
 class Particella {
 	public:	
 		Particella ( void ) {}; /* ctor */
-		virtual ~Particella (void) {}; /* dtor */
+
+		virtual ~Particella (void) { /* dtor */
+			fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET ": "
+					ANSI_YELLOW "%s" ANSI_RESET "] destructed.\n", __func__ );
+		};
 
 	protected:
 		/* record che rappresenta una particella */
@@ -29,10 +31,24 @@ class Particella {
 //			double t[2] = {};
 		} *p = NULL;
 
-		/* scalar product */
-		double sp ( const double *a, const double *b );
-		/* square modulus */
-		double sp ( const double *a );
+
+		/* Scalar product between two vectors, a and b, in D dimensions */
+		inline double sp ( const double *a, const double *b ) {
+			double tmp = (double) 0;
+			for ( unsigned short int d = 0; d < D; d ++ )
+				tmp += *( a + d ) * *( b + d );
+
+			return tmp;
+		};
+
+		/*
+		 * The same as above: if only 'a' is given, it returns his
+		 * square modulus
+		 */
+		inline double sp ( const double *a ) {
+			return Particella::sp( a, a );
+		};
+
 }; /* -----  end of class Particella  ----- */
 
 #endif   /* ----- #ifndef particella_INC  ----- */
