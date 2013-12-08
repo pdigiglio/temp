@@ -1,26 +1,13 @@
-#include "particella.h"
-#include "part_libere.h"
+//#include "particella.h"
+
 #include "colors.h"
 #include "round.h"
 
+#include "part_libere.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-//#include <string.h>
-//#include <iostream>
-
 #include <math.h>
-
-//#include "TH1F.h"
-//#include "TF1.h"
-//
-///* serve per settare il titolo degli assi */
-//#include "TH1.h"
-//#include "TCanvas.h"
-//#include "TStyle.h"
-//#include "TROOT.h"
-//#include "TString.h"
-//#include "TGraph.h"
-//#include "TGraphErrors.h"
 
 /*
  * ------------------------------------------------------------------
@@ -73,12 +60,12 @@ Sistema::Sistema ( void ) {
 	/* energia cinetica */
 	register double kinetic;
 	/* indice di particella (pari/dispari) */
-	register unsigned int n = 0, m;
+	register unsigned int n = 0, m, q;
 	register unsigned short j;
 	/* temporary pointers */
 	struct ptcl *pn, *pm;
 	double **cn, **cm;
-	double **l = list;
+//	double **l = list;
 
 	for ( unsigned short int i = 0; i < N; i ++ ) {
 		/* calcolo la coordinata x */
@@ -108,11 +95,13 @@ Sistema::Sistema ( void ) {
 					*( (*pn).x + d ) = *( x + d );
 					/* assegno la velocità d-esima */
 					*( (*pn).v + d ) = (double) 2 * rand() / RAND_MAX;
+					(*pn).t_last = (double) 0;
 
 					/* assegno la coordinata traslata */
 					*( (*pm).x + d ) = *( y + d );
 					/* assegno la velocità (cambiata di segno) */
 					*( (*pm).v + d ) = - *( (*pn).v + d );
+					(*pm).t_last = (double) 0;
 
 					/* calcolo l'energia cinetica */
 					kinetic += *( (*pn).v + d ) * *( (*pn).v + d );
@@ -132,24 +121,23 @@ Sistema::Sistema ( void ) {
 				}
 
 				/* calcolo i tempi di collisione */
-				unsigned int q;
 				cn = ct + n;
 				cm = ct + m;
 				for ( q = 0; q < n; q ++ ) {
 					*( *cn + q ) = crash_time( q, n );
 
 					/* assign list pointers */
-					*( l ++ ) = *cn + q;
+//					*( l ++ ) = *cn + q;
 
 //					fprintf( stderr, "(%u, %u) %g\n", n, q, *( *( ct + n ) + q ) );
 					
 					*( *cm + q ) = crash_time( q, m );
-					*( l ++ ) = *cm + q;
+//					*( l ++ ) = *cm + q;
 
 //					fprintf( stderr, "(%u, %u) %g\n", m, q, *( *( ct + m ) + q ) );
 				}
 				*( *cm + q ) = crash_time( q, m);
-				*( l ++ ) = *cm + q;
+//				*( l ++ ) = *cm + q;
 //				printf( "%zu\t%lu\n", l - list, e );
 
 //				fprintf( stderr, "(%u, %u) %g\n", m, q, *( *( ct + m ) + q ) );
@@ -158,33 +146,32 @@ Sistema::Sistema ( void ) {
 				n += 2;
 
 //				printf( "%g\n%g\n", kinetic, kinetic );
-//				(*histo).Fill( tmp );
 				K += kinetic;
 			}
 		}
 	}
 
 	/* creo l'array delle colonne */
-	unsigned long int v = 0;
-	unsigned long t1 = 9, t2 = 9;
-	while ( v < e ) {
-		c = (unsigned *) realloc( c, ( ++ L ) * sizeof(unsigned) );
-		if ( c == NULL ) {
-			fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
-					ANSI_YELLOW "%s" ANSI_RESET 
-					"] Dynamic memory allocation failed!\n"
-					" >> Line %u of file '%s'\n",
-					__func__, __LINE__, __FILE__ );
-			exit (EXIT_FAILURE);
-		}
-
-		*( c + L - 1 ) = v + 1;
-
-		/* aggiorno il termine generale */
-		t1 = t1 * 4;
-		t2 = t2 * 2;
-		v = t1 - t2;
-	}
+//	unsigned long int v = 0;
+//	unsigned long t1 = 9, t2 = 9;
+//	while ( v < e ) {
+//		c = (unsigned *) realloc( c, ( ++ L ) * sizeof(unsigned) );
+//		if ( c == NULL ) {
+//			fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
+//					ANSI_YELLOW "%s" ANSI_RESET 
+//					"] Dynamic memory allocation failed!\n"
+//					" >> Line %u of file '%s'\n",
+//					__func__, __LINE__, __FILE__ );
+//			exit (EXIT_FAILURE);
+//		}
+//
+//		*( c + L - 1 ) = v + 1;
+//
+//		/* aggiorno il termine generale */
+//		t1 = t1 * 4;
+//		t2 = t2 * 2;
+//		v = t1 - t2;
+//	}
 
 	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET
 			"] Initial kinetic energy: %g\n", K );
@@ -277,6 +264,7 @@ Sistema::next_crash ( void ) {
 			}
 
 
+
 //	fprintf( stderr, "[] Minimo: %g. Particelle %u - %u\n", minimum, i0, j0 );
 	return minimum;
 
@@ -305,8 +293,13 @@ double
 Sistema::evolve ( void ) {
 	/* sort collision times */
 //	Sistema::shell_sort();
+
 	/* take colliding time */
-	double t = Sistema::next_crash() - tm;
+	double t0 = Sistema::next_crash();
+	double t = t0 - tm;
+
+	fprintf( stderr, "Distanza (1): %g, Sigma: %g\n", Sistema::distance( i0, j0 ), S );
+
 
 	/* temporary particle pointer */
 	struct ptcl *ptr;
@@ -320,15 +313,39 @@ Sistema::evolve ( void ) {
 		}
 	}
 
+	fprintf( stderr, "Distanza(2): %g, Sigma: %g\n", Sistema::distance( i0, j0 ), S );
+	fprintf( stderr, "(t: %g) - (tm: %g) = %g (%u, %u)\n", t0, tm, t, i0, j0 );
+	
+	for ( d = 0; d < D; d ++ ) {
+		fprintf( stderr, "v_{%u}(%hu) = %g\n", i0, d, *( (*( p + i0)).v + d ) );
+		fprintf( stderr, "v_{%u}(%hu) = %g\n", j0, d, *( (*( p + j0)).v + d ) );
+	}
+	if ( t < 0 ) {
+//		fprintf( stderr, "tempo negativo: %g (%u, %u)\n", t, i0, j0 );
+		exit(1);
+	}
+	/* update system time */
+	tm += t;
+
+	/* collision time for (single) particles */
+	ti0 = fabs( tm - (*( p + i0 )).t_last );
+	tj0 = fabs( tm - (*( p + j0 )).t_last );
+	
+	/* update last collision for single particles */
+	(*( p + i0 )).t_last += ti0;
+	(*( p + j0 )).t_last += tj0;
+
+	/* free path */
+	li0 = ti0 * sqrt( Particella::sp( (*(p + i0)).v ) );
+	lj0 = tj0 * sqrt( Particella::sp( (*(p + j0)).v ) );
+
 	/* update colliding particles velocities */
 	Sistema::exchange();
 	/* evaluate new collision times */
-	Sistema::update_crash_times( t + tm );
+	Sistema::update_crash_times( tm );
 
 //	Sistema::mass_center_speed();
 
-	/* update system time */
-	tm += t;
 	/* returns collision delta time */
 	return t;
 } /* -----  end of method Sistema::evolve  ----- */
@@ -436,13 +453,13 @@ Sistema::crash_time ( unsigned int i, unsigned int j ) {
 	double r_ij[D];
 
 	/* cycle over all possible particle image */
-	for ( t[0] = -1; t[0] < 2; t[0] ++ ) {
+	for ( t[0] = -2; t[0] < 3; t[0] ++ ) {
 		*r_ij = *R_ij + (double) *t;
 
-		for (  t[2] = -1; t[2] < 2; t[2] ++ ) { /* 3D */
+		for (  t[2] = -2; t[2] < 3; t[2] ++ ) { /* 3D */
 			*( r_ij + 2 ) = *( R_ij + 2 ) + (double) *( t + 2 );
 
-			for ( t[1] = -1; t[1] < 2; t[1] ++ ) {
+			for ( t[1] = -2; t[1] < 3; t[1] ++ ) {
 				*( r_ij + 1 ) = *( R_ij + 1 ) + (double) *( t + 1 );
 
 				/* evaluate collision time */

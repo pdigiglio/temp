@@ -1,12 +1,16 @@
-
+/* standard headers */
 #include <stdlib.h>
 #include <math.h>
 
+/* base class */
 #include "particella.h"
-
 /* packing fraction */
 #include "eta.h"
-#include "parameters.h"
+/* dimension of the space (2- or 3-D) */
+#include "dimensions.h"
+
+/* number of particles per side */
+#define N 4
 
 #ifndef  part_libere_INC
 #define  part_libere_INC
@@ -36,6 +40,10 @@ class Sistema: public Particella {
 		void time_reset ( void );
 		/* print particle coordinates */
 		void print_x ( void );
+		/* print free path of particles to '*stream' */
+		void print_fp( FILE *stream = stdout );
+		/* print particle collision times to '*stream' */
+		void print_ct( FILE *stream = stdout );
 
 		void mct ( void );
 		/* numero massimo di particelle nel volume */
@@ -58,6 +66,7 @@ class Sistema: public Particella {
 
 		/* colliding particles */
 		unsigned int i0, j0;
+		double ti0, tj0, li0, lj0;
 
 		/* matrice dei tempi di collisione */
 		double **ct = NULL;
@@ -84,6 +93,9 @@ class Sistema: public Particella {
 		/* takes next crash */
 		double next_crash ( void );
 
+		/* returns distance between particles 'i' and 'j' */
+		double distance( unsigned int i, unsigned int j );
+
 		/* shell sort algorithm */
 		void shell_sort ( void );
 
@@ -95,5 +107,49 @@ class Sistema: public Particella {
 		void update_crash_times ( double t0 );
 //	protected:
 }; /* -----  end of class Sistema  ----- */
+
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: print_ct
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline void
+Sistema::print_ct ( FILE *stream ) {
+	fprintf( stream, "%.16g\n%.16g\n", ti0, tj0 );
+} /* -----  end of method Sistema::print_ct  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: print_fp
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline void
+Sistema::print_fp ( FILE *stream ) {
+	fprintf( stream, "%.16g\n%.16g\n", li0, lj0 );
+} /* -----  end of method Sistema::print_fp  ----- */
+
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: distance
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline double
+Sistema::distance ( unsigned int i, unsigned int j ) {
+	double r[D];
+	for ( unsigned int d = 0; d < D; d ++ ) {
+		*( r + d ) = *( (*(p + i)).x + d ) - *( (*(p + j)).x + d );
+		*( r + d ) -= round( *( r + d ) );
+	}
+
+	return sqrt( Particella::sp( r ) );
+} /* -----  end of method Sistema::distance  ----- */
 
 #endif   /* ----- #ifndef part_libere_INC  ----- */
