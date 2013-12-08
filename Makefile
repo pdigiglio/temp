@@ -5,7 +5,7 @@
 # Main file to compile
 MAIN	= free_part
 # Modules to create
-MODULES	= particella part_libere round info_time
+MODULES	= part_libere round info_time
 
 all: $(MAIN)
 
@@ -56,14 +56,14 @@ SHELL	= /bin/bash
 CC		= gcc
 CXX		= g++
 # Some cpu-dependent options
-MARCH	= native
+MARCH	= core2
 MASM	= intel
 # standard language
 STD		= gnu++11
 
 # Opzioni
 CXXFLAGS = -W -Wall -Wextra -Wunreachable-code -Wunused -Wformat-security -Wmissing-noreturn \
-		   -O3 -pedantic -std=$(STD) # -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) -fopenmp #-time
+		   -O3 -pedantic -std=$(STD) -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) #-fopenmp -time
 
 # Rule to make dependence file(s) for modules
 %.d:%.cc
