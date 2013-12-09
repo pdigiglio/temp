@@ -60,7 +60,7 @@ Sistema::Sistema ( void ) {
 	/* energia cinetica */
 	register double kinetic;
 	/* indice di particella (pari/dispari) */
-	register unsigned int n = 0, m, q;
+	register unsigned int q, n = 0, m;
 	register unsigned short j;
 	/* temporary pointers */
 	struct ptcl *pn, *pm;
@@ -353,18 +353,6 @@ Sistema::evolve ( void ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
- *      Method: get_velocity
- * Description: 
- * ------------------------------------------------------------------
- */
-double
-Sistema::get_velocity ( unsigned int n, unsigned short int d ) {
-	return *( (*( p + n )). v + d );
-} /* -----  end of method Sistema::get_velocity  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
  *      Method: update_crash_times
  * Description: 
  * ------------------------------------------------------------------
@@ -495,31 +483,19 @@ Sistema::crash_time ( unsigned int i, unsigned int j ) {
  * Description: mean collision time
  * ------------------------------------------------------------------
  */
-void
-Sistema::mct ( void ) {
-	*tau = (double) *tau / crash;
-	*( tau + 1 ) = (double) *( tau + 1 ) / crash;
-	*( tau + 1 ) -= *tau * *tau;
-
-	printf( "%Lf\t%Lf\n", tau[0], sqrtl( tau[1] / crash ) );
-	round( *tau, sqrtl( *( tau + 1 )  / crash ) );
-	printf( "\n" );
+//void
+//Sistema::mct ( void ) {
+//	*tau = (double) *tau / crash;
+//	*( tau + 1 ) = (double) *( tau + 1 ) / crash;
+//	*( tau + 1 ) -= *tau * *tau;
 //
-	
-	return;
-} /* -----  end of method Sistema::mct  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: get_time
- * Description: 
- * ------------------------------------------------------------------
- */
-double
-Sistema::get_time ( void ) {
-	return tm;
-} /* -----  end of method Sistema::get_time  ----- */
+//	printf( "%Lf\t%Lf\n", tau[0], sqrtl( tau[1] / crash ) );
+//	round( *tau, sqrtl( *( tau + 1 )  / crash ) );
+//	printf( "\n" );
+////
+//	
+//	return;
+//} /* -----  end of method Sistema::mct  ----- */
 
 /*
  * ------------------------------------------------------------------
@@ -569,30 +545,6 @@ Sistema::exchange ( /* unsigned int i, unsigned int j */ ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
- *      Method: get_pr
- * Description: 
- * ------------------------------------------------------------------
- */
-double
-Sistema::get_pr ( void ) {
-	return pr;
-} /* -----  end of method Sistema::get_pr  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: reset_pr
- * Description: 
- * ------------------------------------------------------------------
- */
-void
-Sistema::reset_pr ( double val ) {
-	pr = (double) val;
-} /* -----  end of method Sistema::reset_pr  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
  *      Method: Sistema
  * Description: [copy ctor]
  * ------------------------------------------------------------------
@@ -631,30 +583,6 @@ Sistema::~Sistema (void) {
 	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET ": "
 			ANSI_YELLOW "%s" ANSI_RESET "] destructed.\n", __func__ );
 } /* -----  end of method Sistema::~Sistema (dtor)  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: get_KT
- * Description: 
- * ------------------------------------------------------------------
- */
-double
-Sistema::get_KT ( void ) {
-	return (double) 2 * K / ( D * nMax );
-} /* -----  end of method Sistema::get_KT  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: get_K
- * Description: 
- * ------------------------------------------------------------------
- */
-double
-Sistema::get_K ( void ) {
-	return K;
-} /* -----  end of method Sistema::get_K  ----- */
 
 /*
  * ------------------------------------------------------------------

@@ -26,6 +26,7 @@ class Sistema: public Particella {
 		Sistema ( void ); /* ctor */
 		~Sistema ( void ); /* dtor */
 
+		/* return current value of 'tm' counter */
 		double get_time ( void );
 		double get_pr ( void );
 		double get_velocity( unsigned int n, unsigned short d = 0 );
@@ -45,7 +46,7 @@ class Sistema: public Particella {
 		/* print particle collision times to '*stream' */
 		void print_ct( FILE *stream = stdout );
 
-		void mct ( void );
+//		void mct ( void );
 		/* numero massimo di particelle nel volume */
 		const static unsigned long int nMax = (unsigned long) 2 * powl( N, D );
 
@@ -61,6 +62,7 @@ class Sistema: public Particella {
 		/* speed of center of mass system */
 		void mass_center_speed ( void );
 	private:
+		/* system time, updated at each evolution */
 		double tm = (double) 0;
 		long double tau[2] = {};
 
@@ -69,8 +71,14 @@ class Sistema: public Particella {
 		double ti0, tj0, li0, lj0;
 
 		/* matrice dei tempi di collisione */
+//		struct CT {
+//			double t;
+//			unsigned int j;
+//		} **ct = NULL;
+
 		double **ct = NULL;
-		/* nomber of list entries */
+
+		/* number of list entries */
 		static const unsigned long int e = ( nMax ) * ( nMax - 1) / 2;
 		/* sorted list of collision times */
 		double *list[e];
@@ -82,13 +90,7 @@ class Sistema: public Particella {
 		double K = (double) 0;
 		double pr = (double) 0;
 
-		unsigned int crash = 0;
-
-		/* scalar product */
-//		double sp ( const double *a, const double *b );
-//		/* if only 'a' is given, returns his square modulus */
-//		double sp ( const double *a );
-
+//		unsigned int crash = 0;
 
 		/* takes next crash */
 		double next_crash ( void );
@@ -108,12 +110,83 @@ class Sistema: public Particella {
 //	protected:
 }; /* -----  end of class Sistema  ----- */
 
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: get_KT
+ * Description: return KT evaluated from kinetic energy
+ * ------------------------------------------------------------------
+ */
+inline double
+Sistema::get_KT ( void ) {
+	return (double) 2 * K / ( D * nMax );
+} /* -----  end of method Sistema::get_KT  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: get_K
+ * Description: return kinetic energy
+ * ------------------------------------------------------------------
+ */
+inline double
+Sistema::get_K ( void ) {
+	return (double) K;
+} /* -----  end of method Sistema::get_K  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: get_velocity
+ * Description: return d-th velocity component of n-th particle
+ * ------------------------------------------------------------------
+ */
+inline double
+Sistema::get_velocity ( unsigned int n, unsigned short int d ) {
+	return *( (*( p + n )). v + d );
+} /* -----  end of method Sistema::get_velocity  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: get_pr
+ * Description: return current value of pressure
+ * ------------------------------------------------------------------
+ */
+inline double
+Sistema::get_pr ( void ) {
+	return pr;
+} /* -----  end of method Sistema::get_pr  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: get_time
+ * Description: return current system time
+ * ------------------------------------------------------------------
+ */
+inline double
+Sistema::get_time ( void ) {
+	return (double) tm;
+} /* -----  end of method Sistema::get_time  ----- */
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
+ *      Method: reset_pr
+ * Description: reset pressure counter
+ * ------------------------------------------------------------------
+ */
+inline void
+Sistema::reset_pr ( double val ) {
+	pr = (double) val;
+} /* -----  end of method Sistema::reset_pr  ----- */
 
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
  *      Method: print_ct
- * Description: 
+ * Description: print single particle collision time of i0-th and
+ * 				j0-th particles to '*stream'
  * ------------------------------------------------------------------
  */
 inline void
@@ -125,7 +198,7 @@ Sistema::print_ct ( FILE *stream ) {
  * ------------------------------------------------------------------
  *       Class: Sistema
  *      Method: print_fp
- * Description: 
+ * Description: as above with the free path of particles
  * ------------------------------------------------------------------
  */
 inline void
@@ -138,7 +211,7 @@ Sistema::print_fp ( FILE *stream ) {
  * ------------------------------------------------------------------
  *       Class: Sistema
  *      Method: distance
- * Description: 
+ * Description: return distance between i-th and j-th particles
  * ------------------------------------------------------------------
  */
 inline double
