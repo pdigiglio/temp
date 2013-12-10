@@ -63,7 +63,10 @@ STD		= gnu++11
 
 # Opzioni
 CXXFLAGS = -W -Wall -Wextra -Wunreachable-code -Wunused -Wformat-security -Wmissing-noreturn \
-		   -O3 -pedantic -std=$(STD) -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) #-fopenmp -time
+		   -O3 -pedantic -std=$(STD) -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) #-fopenmp -time -Ofast
+
+# Add includes
+CXXFLAGS += $(INCPATH)
 
 # Rule to make dependence file(s) for modules
 %.d:%.cc
@@ -81,13 +84,13 @@ CXXFLAGS = -W -Wall -Wextra -Wunreachable-code -Wunused -Wformat-security -Wmiss
 %.o: %.cc %.d Makefile
 	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -o `tput bold`$@`tput sgr0`" \
 		"-c `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
-	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCPATH) $(LDFLAGS)
+	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(LDFLAGS)
 
 # Rule to make object file for main routine
 %.o: %.cpp %.d Makefile
 	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -o `tput bold`$@`tput sgr0`" \
 		"-c `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
-	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(INCPATH) $(LDFLAGS)
+	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(LDFLAGS)
 
 $(MAIN): %: $(OBJS) Makefile
 	@ echo
@@ -97,7 +100,11 @@ $(MAIN): %: $(OBJS) Makefile
 	@ echo -e "[`tput bold``tput setaf 6`main`tput sgr0`]"\
 		"$(CXX) -o `tput bold`$@`tput sgr0` `tput setaf 2`$(OBJS)`tput sgr0`" \
 		"$(CXXFLAGS)$(INCPATH) $(LDFLAGS)\n"
-	@$(CXX) $(OBJS) -o $@ $(CXXFLAGS) $(INCPATH) $(LDFLAGS)
+	@$(CXX) $(OBJS) -o $@ $(CXXFLAGS) $(LDFLAGS)
+
+analisi: %: analisi.o round.o
+	$(CXX) $? -o $@ $(CXXFLAGS) $(LDFLAGS)
+
 
 
 # Produce executables
