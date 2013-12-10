@@ -34,7 +34,7 @@
 #include "round.h"
 
 /* cycle to termalize system */
-#define TERM	1
+#define TERM	100
 
 /* 
  * ===  FUNCTION  ===================================================
@@ -45,23 +45,23 @@
 int
 main ( /* int argc, char *argv[] */ ) {
 	/* inizializzo il seme dei numeri casuali */
-	srand( time(NULL) );
+//	srand( time(NULL) );
 	
 	/* take initial time */
 	unsigned int begin = clock();
 
 	Sistema s;
-
+return 0;
 	/* termalizzo */
 	register unsigned int j, k;
 	for ( k = 0; k < TERM; k ++ ) {
 		for ( j = 0; j < s.nMax; j ++ ) {
-			printf( "%d\n\n", j );
+//			printf( "%d\n\n", j );
 			s.evolve();
 		}
 	}
 
-	exit(1);
+	return 0;
 	
 	/* reset pressure */
 	s.reset_pr();
@@ -75,6 +75,7 @@ main ( /* int argc, char *argv[] */ ) {
 	/*-------------------------------------------------------------------
 	 *  Misure
 	 *-----------------------------------------------------------------*/
+	/* speeds histogram */
 	char speed_file_name[] = "speed.dat";
 	FILE *speed = fopen( speed_file_name, "w" );
 	if ( speed == NULL ) {
@@ -83,15 +84,57 @@ main ( /* int argc, char *argv[] */ ) {
 		exit (EXIT_FAILURE);
 	}
 
+	/* collision delta time histogram */
+	char dt_file_name[] = "delta_t.dat";
+	FILE *dt = fopen( dt_file_name, "w" );
+	if ( dt == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				dt_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	/* single collision delta time histogram */
+	char sdt_file_name[] = "single_delta_t.dat";
+	FILE *sdt = fopen( sdt_file_name, "w" );
+	if ( sdt == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				sdt_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	/* free path */
+	char fp_file_name[] = "free_path.dat";
+	FILE *fp = fopen( fp_file_name, "w" );
+	if ( fp == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				fp_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	/* pressure histogram (double pick) */
+	char dp_file_name[] = "dpure_measures.dat";
+	FILE *dp = fopen( dp_file_name, "w" );
+	if ( dp == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				dp_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
 	double p[2] = {}, ptemp;
 	double t;
-	for ( k = 0 ; k < 1; k ++ ) {
+	for ( k = 0 ; k < 1000; k ++ ) {
+
 		/* save time before cycle */
 		t = s.get_time();
 
 		/* evolve system and print collision delta times */
-		for ( j = 0; j < s.nMax; j ++ )
-			fprintf( stderr, "%.16g\n", s.evolve() );
+		for ( j = 0; j < s.nMax; j ++ ) {
+			fprintf( dt, "%.16g\n", s.evolve() );
+			/* free path */
+			s.print_fp( fp );
+			/* single collision time */
+			s.print_ct( sdt );
+		}
 
 		/* take velocity measures */
 		for ( j = 0; j < s.nMax; j ++ )
@@ -99,7 +142,8 @@ main ( /* int argc, char *argv[] */ ) {
 
 		/* measure pressure */
 		ptemp = s.get_pr() / ( s.get_time() - t );
-		fprintf( stdout, "%.16g\n", ptemp);
+		fprintf( dp, "%.16g\n", ptemp);
+
 		*p += ptemp;
 		*( p + 1 ) += ptemp * ptemp;
 
@@ -115,6 +159,30 @@ main ( /* int argc, char *argv[] */ ) {
 		exit (EXIT_FAILURE);
 	}
 
+	if( fclose(dt) == EOF ) { /* close output file */
+		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				dt_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	if( fclose(dp) == EOF ) { /* close output file */
+		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				dp_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	if( fclose(sdt) == EOF ) { /* close output file */
+		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				sdt_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	if( fclose(fp) == EOF ) { /* close output file */
+		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				fp_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
 	/* normalize pressure */
 	*p = (double) *p / k;
 	*( p + 1 ) = (double) *( p + 1 ) / k;
@@ -124,7 +192,7 @@ main ( /* int argc, char *argv[] */ ) {
 		*( p + j ) = (double) s.S * *( p + j ) / ( 2 * s.get_K() );
 
 	/* output-file name */
-	char press_file_name[] = "pression.dat"; 
+	char press_file_name[] = "presure.dat"; 
 	FILE *press = fopen( press_file_name, "a" );
 	if ( press == NULL ) {
 		fprintf ( stderr, "couldn't open file '%s'; %s\n",
@@ -146,6 +214,5 @@ main ( /* int argc, char *argv[] */ ) {
 	/* print execution time */
 	print_exe_time( begin, __func__ );
 
-//	exit(EXIT_SUCCESS);
 	return 0;
 } /* ----------  end of function main  ---------- */

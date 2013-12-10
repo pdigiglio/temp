@@ -19,7 +19,7 @@ binwidth = ( STATS_max - STATS_min ) / bins
 Norm = STATS_records * binwidth
 
 # Funzione per creare i bin
-bin(x, width) = width * ( floor( x / width ) ) #+ .5 )
+bin(x, width) = width * ( floor( x / width ) + .5 )
 
 #show variables all
 
@@ -47,5 +47,14 @@ lab =  sprintf( "Data\n".\
 # Trova automaticamente il dominio
 set autoscale
 
-plot filename.".dat" using ( bin( $1, binwidth ) ):(1.0 / Norm ) smooth freq with boxes title lab
+plot filename.".dat" using ( bin( $1, binwidth ) ):(1.0 / Norm ) smooth freq with boxes title lab, filename."_histo.dat" using 1:2 w boxes 
 
+set table
+set output filename."_histo.dat"
+
+# Funzione per creare i bin (per TikZ)
+#bin(x, width) = width * ( floor( x / width ) )
+
+#plot filename.".dat" using ( bin( $1, binwidth ) ):(1.0 / Norm ) smooth freq with boxes title lab
+
+#unset table
