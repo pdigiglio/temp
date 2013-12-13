@@ -32,6 +32,8 @@
 
 #include <errno.h>
 #include <string.h>
+/* to get file basenames */
+#include <libgen.h>
 
 #include "round.h"
 
@@ -72,11 +74,21 @@ main ( int argc, char *argv[] ) {
 	 * -------------------------------------------------------------*/
 
 	/* valori delle misure */
-	double **f = NULL;
+	double **f = NULL, *ptr = NULL;
 	double temp;
 
 	/* media ed errore (inizializzate a zero) */
 	double mean[C] = {}, err[C] =  {};
+
+	char out_file_name[] = "analisi.dat";
+//	sprintf( out_file_name, "%s_%u.dat", basename( argv[1] ), ord );
+	
+	FILE *out_stream = fopen( out_file_name, "w" );
+	if ( out_stream == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				out_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
 
 	/* acquisisco i valori e calcolo la media */
 	unsigned int l, i;
@@ -88,15 +100,18 @@ main ( int argc, char *argv[] ) {
 			exit (EXIT_FAILURE);
 		}
 
-		f[l] = (double *) malloc( C * sizeof(double) );
-		if ( f[l] == NULL ) {
+		*( f + l ) = (double *) malloc( C * sizeof(double) );
+		if ( *( f + l ) == NULL ) {
 			fprintf ( stderr, "\ndynamic memory allocation failed\n" );
 			exit (EXIT_FAILURE);
 		}
+	
+		/* assign temporary pointer */
+		ptr = *( f + l );
 		
 		/* azzero i valori di '**f' */
 		for ( unsigned short int j = 0; j < C; j ++ )
-			f[l][j] = (double) 0;
+			*( ptr + j ) = (double) 0;
 
 		/* calcolo i cluster */
 		for ( i = 0; i < ord && !( feof(pFile) ); i ++ ) {
@@ -105,23 +120,25 @@ main ( int argc, char *argv[] ) {
 			/* acquisisco prime colonne */
 			for ( j = 0; j < C - 1; j ++ ) {
 				fscanf(pFile, "%lf, ", &temp);
-				f[l][j] += temp;
+				*( ptr + j ) += temp;
 			}
 
 			/* ultima colonna */
 			fscanf(pFile, "%lf\n", &temp);
-			f[l][j] += temp;
+			*( ptr + j ) += temp;
 		}
 		
-//		printf( "%u\t", l );
+//		fprintf( out_stream, "%u\t", l );
 		/* normalizzo i cluster ed aggiorno le medie */
 		for ( unsigned short int j = 0; j < C; j ++ ) {
-			f[l][j] = (double) f[l][j] / i;
-//			printf("%G\t", f[l][j]);
-			mean[j] += f[l][j];
-			err[j] += pow( f[l][j], (double) 2);
+			*( ptr + j ) = (double) *( ptr + j ) / i;
+
+			fprintf( out_stream, "%G\t", *( ptr + j ) );
+			
+			*( mean + j ) += *( ptr + j );
+			*( err + j ) += *( ptr + j ) * *( ptr + j );
 		}
-//		printf("\n");
+		fprintf(out_stream, "\n" );
 	}
 
 	/* chiudo il file di input */
@@ -131,16 +148,21 @@ main ( int argc, char *argv[] ) {
 		exit (EXIT_FAILURE);
 	}
 
+	if( fclose(out_stream) == EOF ) { /* close output file */
+		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				out_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
 
 	FILE *stream = stdout;
 //	fprintf( stream, "%u\t", ord);
 	for ( unsigned short int j = 0; j < C; j ++ ) {
 		/* normalizzo la media */
-		mean[j] = (double) mean[j] / l;
+		*( mean + j ) = (double) *( mean + j ) / l;
 
 		/* calcolo la varianza */
-		err[j] = err[j] / l;
-		err[j] = (double) sqrt( err[j] - pow( mean[j], (double) 2) );
+		*( err + j ) = *( err + j ) / l;
+		*( err + j ) = (double) sqrt( *( err + j ) - pow( *( mean + j ), (double) 2) );
 
 		/* stampo nel file varianza e sdom */
 		round( *( mean + j), *( err + j ) / sqrt( l ), stream );
