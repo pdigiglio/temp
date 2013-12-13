@@ -10,7 +10,9 @@
 #include "dimensions.h"
 
 /* number of particles per side */
-#define N 4
+#define N	5
+/* time step to evaluate $\Delta r^2(t)$ */
+//#define EPS	.001
 
 #ifndef  part_libere_INC
 #define  part_libere_INC
@@ -36,7 +38,6 @@ class Sistema: public Particella {
 		void reset_pr ( double val = (double) 0 );
 
 		double evolve ( void );
-		void pression (void);
 
 		void time_reset ( void );
 		/* print particle coordinates */
@@ -64,7 +65,7 @@ class Sistema: public Particella {
 	private:
 		/* system time, updated at each evolution */
 		double tm = (double) 0;
-		long double tau[2] = {};
+//		long double tau[2] = {};
 
 		/* colliding particles */
 		unsigned int i0, j0;
@@ -77,6 +78,8 @@ class Sistema: public Particella {
 //		} **ct = NULL;
 
 		double **ct = NULL;
+
+		double r[200], dr[200];
 
 		/* number of list entries */
 		static const unsigned long int e = ( nMax ) * ( nMax - 1) / 2;

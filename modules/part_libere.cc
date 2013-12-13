@@ -190,18 +190,21 @@ Sistema::Sistema ( void ) {
  */
 void
 Sistema::mass_center_speed ( void ) {
-	printf( "\n");
+	/* temporary variables */
 	double tmp[3] = {};
-	for ( unsigned int s = 0; s < nMax; s ++ ) {
-//		printf( "%hu\t", s );
-		for ( unsigned short int d = 0; d < D; d ++ ) {
-//			printf( "%hu\t%f\t", d, *( (*( p + s )).v + d ) );
-			tmp[d] += *( (*( p + s )).v + d );
-			/* aggiungo questo per evitare che la variabile si saturi */
-//			tmp[d] += *( (*( p + s + nMax / 2 )).v + d );
-		}
-//		printf( "\n" );
+
+	/* evaluate speed sum */
+	struct ptcl *ptr;
+	for ( unsigned int s = 0; s < Sistema::nMax; s ++ ) {
+		ptr = p + s;
+		for ( unsigned short int d = 0; d < D; d ++ )
+			*( tmp + d ) += *( (*ptr).v + d );
 	}
+
+	/* normalize */
+	for ( unsigned short int d = 0; d < D; d ++ )
+		*( tmp + d ) = (double) *( tmp + d ) / Sistema::nMax;
+
 	fprintf( stderr, "[" ANSI_CYAN "info" ANSI_RESET
 			"] Center of mass velocity: (%g, %g, %g)\n", tmp[0], tmp[1], tmp[2] );
 } /* -----  end of method Sistema::mass_center_speed  ----- */
@@ -252,16 +255,23 @@ Sistema::shell_sort ( void ) {
  */
 double
 Sistema::next_crash ( void ) {
-	
-	/* XXX */
+	/* initial values for colliding particles */
 	i0 = 1; j0 = 0;
-	double minimum = ct[1][0];
-	for ( unsigned int n = 2; n < nMax; n ++ )
-		for ( unsigned int m = 0; m < n; m ++ )
-			if ( minimum > ct[n][m] ) {
-				minimum = ct[n][m];
+	/* initial value for collision time */
+	double minimum = **( ct + 1 );
+
+	/* seek for minimum */
+	register unsigned int m;
+	double *ptr;
+	for ( unsigned int n = 2; n < Sistema::nMax; n ++ ) {
+		ptr = *( ct + n );
+
+		for ( m = 0; m < n; m ++ )
+			if ( minimum > *( ptr + m ) ) {
+				minimum = *( ptr + m );
 				i0 = n; j0 = m;
 			}
+	}
 
 
 
@@ -298,7 +308,7 @@ Sistema::evolve ( void ) {
 	double t0 = Sistema::next_crash();
 	double t = t0 - tm;
 
-	fprintf( stderr, "Distanza (1): %g, Sigma: %g\n", Sistema::distance( i0, j0 ), S );
+//	fprintf( stderr, "Distanza (1): %g, Sigma: %g\n", Sistema::distance( i0, j0 ), S );
 
 
 	/* temporary particle pointer */
@@ -313,17 +323,17 @@ Sistema::evolve ( void ) {
 		}
 	}
 
-	fprintf( stderr, "Distanza(2): %g, Sigma: %g\n", Sistema::distance( i0, j0 ), S );
-	fprintf( stderr, "(t: %g) - (tm: %g) = %g (%u, %u)\n", t0, tm, t, i0, j0 );
-	
-	for ( d = 0; d < D; d ++ ) {
-		fprintf( stderr, "v_{%u}(%hu) = %g\n", i0, d, *( (*( p + i0)).v + d ) );
-		fprintf( stderr, "v_{%u}(%hu) = %g\n", j0, d, *( (*( p + j0)).v + d ) );
-	}
-	if ( t < 0 ) {
-//		fprintf( stderr, "tempo negativo: %g (%u, %u)\n", t, i0, j0 );
-		exit(1);
-	}
+//	fprintf( stderr, "Distanza(2): %g, Sigma: %g\n", Sistema::distance( i0, j0 ), S );
+//	fprintf( stderr, "(t: %g) - (tm: %g) = %g (%u, %u)\n", t0, tm, t, i0, j0 );
+//	
+//	for ( d = 0; d < D; d ++ ) {
+//		fprintf( stderr, "v_{%u}(%hu) = %g\n", i0, d, *( (*( p + i0)).v + d ) );
+//		fprintf( stderr, "v_{%u}(%hu) = %g\n", j0, d, *( (*( p + j0)).v + d ) );
+//	}
+//	if ( t < 0 ) {
+////		fprintf( stderr, "tempo negativo: %g (%u, %u)\n", t, i0, j0 );
+//		exit(1);
+//	}
 	/* update system time */
 	tm += t;
 
@@ -359,14 +369,7 @@ Sistema::evolve ( void ) {
  */
 void
 Sistema::update_crash_times ( double t0 = (double) 0 ) {
-//	register unsigned int j;
-//	double **pt;
-//	for ( unsigned int i = 1; i < nMax; i ++ ) {
-//		pt = ct + i;
-//		for ( j = 0; j < i; j ++ )
-//			*( *pt + j ) = Sistema::crash_time( i, j );
-//	}
-
+	/* temporary pointer */
 	double **pt = ct + i0;
 	register unsigned int j;
 
@@ -376,7 +379,7 @@ Sistema::update_crash_times ( double t0 = (double) 0 ) {
 	for ( j = i0 + 1; j < nMax; j ++ )
 		*( *( ct + j ) + i0 ) = t0 + Sistema::crash_time( i0, j );
 
-
+	/* reassign pointer */
 	pt = ct + j0;
 	for ( j = 0; j < j0; j ++ )
 		*( *pt + j ) = t0 + Sistema::crash_time( j0, j );
@@ -397,7 +400,7 @@ Sistema::print_x ( void ) {
 	/* pointer to first particle structure */
 	struct ptcl *ptr = p;
 
-	for ( unsigned int n = 0; n < nMax; n ++ ) {
+	for ( unsigned int n = 0; n < Sistema::nMax; n ++ ) {
 		/* print particle number */
 		fprintf( stdout, "%u\t", n );
 		/* print coordinate values */
@@ -422,6 +425,7 @@ double
 Sistema::crash_time ( unsigned int i, unsigned int j ) {
 	/* temporary variables for vector differences */
 	double R_ij[D], v_ij[D];
+
 	/* assign initial values */
 	for ( unsigned short int d = 0; d < D; d ++ ) {
 		/* positions */
@@ -441,13 +445,13 @@ Sistema::crash_time ( unsigned int i, unsigned int j ) {
 	double r_ij[D];
 
 	/* cycle over all possible particle image */
-	for ( t[0] = -2; t[0] < 3; t[0] ++ ) {
+	for ( t[0] = -1; t[0] < 2; t[0] ++ ) {
 		*r_ij = *R_ij + (double) *t;
 
-		for (  t[2] = -2; t[2] < 3; t[2] ++ ) { /* 3D */
+		for (  t[2] = -1; t[2] < 2; t[2] ++ ) { /* 3D */
 			*( r_ij + 2 ) = *( R_ij + 2 ) + (double) *( t + 2 );
 
-			for ( t[1] = -2; t[1] < 3; t[1] ++ ) {
+			for ( t[1] = -1; t[1] < 2; t[1] ++ ) {
 				*( r_ij + 1 ) = *( R_ij + 1 ) + (double) *( t + 1 );
 
 				/* evaluate collision time */
@@ -501,24 +505,25 @@ Sistema::crash_time ( unsigned int i, unsigned int j ) {
  * ------------------------------------------------------------------
  *       Class: Sistema
  *      Method: exchange
- * Description: 
+ * Description: exchange colliding particles velocities (i0, j0).
  * ------------------------------------------------------------------
  */
 void
-Sistema::exchange ( /* unsigned int i, unsigned int j */ ) {
-	unsigned int i = i0, j = j0;
-
+Sistema::exchange ( void ) {
+	/* auxiliary variables for position and velocity difference */
 	double R_ij[D], v_ij[D];
+	/* temporary particle pointers */
+	struct ptcl *pi = p + i0, *pj = p + j0;
 
 	/* assign initial values */
 	for ( unsigned short int d = 0; d < D; d ++ ) {
 		/* positions */
-		*( R_ij + d ) = *( (*( p + i )).x + d ) - *( (*( p + j )).x + d );
+		*( R_ij + d ) = *( (*pi).x + d ) - *( (*pj).x + d );
 		/* impose cyclic conditions */
 		*( R_ij + d ) -= (double) round( *( R_ij + d ) );
 	
 		/* velocity components */
-		*( v_ij + d ) = *( (*( p + i )).v + d ) - *( (*( p + j )).v + d );
+		*( v_ij + d ) = *( (*pi).v + d ) - *( (*pj).v + d );
 	}
 
 	double dv = Particella::sp ( v_ij, R_ij ) / ( S * S );
@@ -526,31 +531,21 @@ Sistema::exchange ( /* unsigned int i, unsigned int j */ ) {
 	
 	/* evaluate pression */
 	pr += fabs( dv );
-//	*( press + 1 ) += dv * dv;
 
+	/* exchange velocity components */
 	for ( unsigned short int d = 0; d < D; d ++ ) {
-//		fprintf( stderr, "(%u) v_%hu = %f\t", i, d, *( (*( p + i )).v + d ));
+//		fprintf( stderr, "(%u) v_%hu = %f\t", i, d, *( (*pi).v + d ));
 		
-		*( (*( p + i )).v + d ) -= dv * *( R_ij + d );
+		*( (*pi).v + d ) -= dv * *( R_ij + d );
 
-//		fprintf( stderr, "(%u) v_%hu = %f\t", i, d, *( (*( p + i )).v + d ));
-//		fprintf( stderr, "(%u) v_%hu = %f\t", j, d, *( (*( p + j )).v + d ));
+//		fprintf( stderr, "(%u) v_%hu = %f\t", i, d, *( (*pi).v + d ));
+//		fprintf( stderr, "(%u) v_%hu = %f\t", j, d, *( (*pj).v + d ));
 		
-		*( (*( p + j )).v + d ) += dv * *( R_ij + d );
+		*( (*pj).v + d ) += dv * *( R_ij + d );
 
-//		fprintf( stderr, "(%u) v_%hu = %f\n", j, d, *( (*( p + j )).v + d ));
+//		fprintf( stderr, "(%u) v_%hu = %f\n", j, d, *( (*pj).v + d ));
 	}
 } /* -----  end of method Sistema::exchange  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: Sistema
- * Description: [copy ctor]
- * ------------------------------------------------------------------
- */
-//Sistema::Sistema (const Sistema &other) {
-//} /* -----  end of method Sistema::Sistema (copy ctor)  ----- */
 
 /*
  * ------------------------------------------------------------------
@@ -583,38 +578,3 @@ Sistema::~Sistema (void) {
 	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET ": "
 			ANSI_YELLOW "%s" ANSI_RESET "] destructed.\n", __func__ );
 } /* -----  end of method Sistema::~Sistema (dtor)  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: pression
- * Description: 
- * ------------------------------------------------------------------
- */
-void
-Sistema::pression ( void ) {
-//	*( press ) = *( press ) / tm;
-//	*( press + 1 ) = sqrt ( *( press + 1 ) / tm - *press * *press );
-//
-//	for ( unsigned short int k = 0; k < 2; k ++ )
-//		*( press + k ) = S * *( press + k ) / ( 2. * K );
-//
-//	press[0] ++;
-//
-//	printf( "Pressione: %g +- %g\n", press[0], press[1] / sqrt( tm ) );
-} /* -----  end of method Sistema::pression  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: operator '='
- * Description: assignment operator
- * ------------------------------------------------------------------
- */
-//Sistema&
-//Sistema::operator = (const Sistema &other) {
-//	if ( this != &other ) {
-//	}
-//	return *this;
-//} /* -----  end of method Sistema::operator =  (ass. op.)  ----- */
-
