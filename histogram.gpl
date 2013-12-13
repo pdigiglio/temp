@@ -6,13 +6,20 @@ if ( ! exists("filename") ) {
 	print "File name ".filename.".dat"
 }
 
+# Bins default
+bd = 20
+if ( ! exists("bins") ) {
+	print "Default bins: ".bd
+	bins = bd
+} else {
+	print "Bins: ".bins
+}
+
 set font "Helvetica,12"
 
 # Eseguo un'analisi del file in input
 stats filename.".dat" using 1
 
-# Numero dei bin
-bins = 100
 # Calcolo la dimensione del bin
 binwidth = ( STATS_max - STATS_min ) / bins
 # Fattore di normalizzazione
@@ -24,7 +31,7 @@ bin(x, width) = width * ( floor( x / width ) + .5 )
 #show variables all
 
 set grid
-set style fill transparent pattern 4 bo
+set style fill pattern 4 bo
 
 # Title for data plot
 lab =  sprintf( "Data\n".\
@@ -47,14 +54,20 @@ lab =  sprintf( "Data\n".\
 # Trova automaticamente il dominio
 set autoscale
 
-plot filename.".dat" using ( bin( $1, binwidth ) ):(1.0 / Norm ) smooth freq with boxes title lab, filename."_histo.dat" using 1:2 w boxes 
+set terminal png size 800,600
+set output filename.".png"
+
+plot filename.".dat" using ( bin( $1, binwidth ) ):( 1.0 / Norm ) smooth freq with boxes title lab
+
 
 set table
 set output filename."_histo.dat"
 
 # Funzione per creare i bin (per TikZ)
-#bin(x, width) = width * ( floor( x / width ) )
+bin(x, width) = width * ( floor( x / width ) )
+
+replot
 
 #plot filename.".dat" using ( bin( $1, binwidth ) ):(1.0 / Norm ) smooth freq with boxes title lab
 
-#unset table
+unset table

@@ -39,7 +39,7 @@ round ( long double val, long double err, FILE *stream ) {
 
 //	printf( "%hd\n", exp);
 
-	fprintf( stream, "%Lf\t%Lf",
+	fprintf( stream, "%Lg\t%Lg",
 				roundl( val / powl(10., exp) ) * powl(10., exp),
 				roundl( tmp ) * powl(10., exp)
 			);
@@ -77,7 +77,7 @@ round ( double val, double err, FILE *stream ) {
 	if ( tmp < 3 )
 		tmp = err / pow( 10, -- exp );
 
-	fprintf( stream, "%f\t%f",
+	fprintf( stream, "%g\t%g",
 				round( val / pow(10., exp) ) * pow(10., exp),
 				round( tmp ) * pow(10., exp)
 			);

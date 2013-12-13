@@ -34,7 +34,7 @@
 #include "round.h"
 
 /* cycle to termalize system */
-#define TERM	100
+#define TERM	10
 
 /* 
  * ===  FUNCTION  ===================================================
@@ -51,7 +51,7 @@ main ( /* int argc, char *argv[] */ ) {
 	unsigned int begin = clock();
 
 	Sistema s;
-return 0;
+
 	/* termalizzo */
 	register unsigned int j, k;
 	for ( k = 0; k < TERM; k ++ ) {
@@ -61,7 +61,7 @@ return 0;
 		}
 	}
 
-	return 0;
+//	return 0;
 	
 	/* reset pressure */
 	s.reset_pr();
@@ -112,7 +112,7 @@ return 0;
 	}
 
 	/* pressure histogram (double pick) */
-	char dp_file_name[] = "dpure_measures.dat";
+	char dp_file_name[] = "dp_measures.dat";
 	FILE *dp = fopen( dp_file_name, "w" );
 	if ( dp == NULL ) {
 		fprintf ( stderr, "couldn't open file '%s'; %s\n",
@@ -192,7 +192,7 @@ return 0;
 		*( p + j ) = (double) s.S * *( p + j ) / ( 2 * s.get_K() );
 
 	/* output-file name */
-	char press_file_name[] = "presure.dat"; 
+	char press_file_name[] = "pressure.dat"; 
 	FILE *press = fopen( press_file_name, "a" );
 	if ( press == NULL ) {
 		fprintf ( stderr, "couldn't open file '%s'; %s\n",

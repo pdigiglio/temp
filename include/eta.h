@@ -3,6 +3,6 @@
 #ifndef  eta_INC
 #define  eta_INC
 
-#define E	.02
+#define E	.550
 
 #endif   /* ----- #ifndef eta_INC  ----- */
