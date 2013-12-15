@@ -125,22 +125,9 @@ Sistema::Sistema ( void ) {
 				cm = ct + m;
 				for ( q = 0; q < n; q ++ ) {
 					*( *cn + q ) = crash_time( q, n );
-
-					/* assign list pointers */
-//					*( l ++ ) = *cn + q;
-
-//					fprintf( stderr, "(%u, %u) %g\n", n, q, *( *( ct + n ) + q ) );
-					
 					*( *cm + q ) = crash_time( q, m );
-//					*( l ++ ) = *cm + q;
-
-//					fprintf( stderr, "(%u, %u) %g\n", m, q, *( *( ct + m ) + q ) );
 				}
 				*( *cm + q ) = crash_time( q, m);
-//				*( l ++ ) = *cm + q;
-//				printf( "%zu\t%lu\n", l - list, e );
-
-//				fprintf( stderr, "(%u, %u) %g\n", m, q, *( *( ct + m ) + q ) );
 
 				/* aggiorno l'indice della particella (pari) */
 				n += 2;
@@ -150,28 +137,6 @@ Sistema::Sistema ( void ) {
 			}
 		}
 	}
-
-	/* creo l'array delle colonne */
-//	unsigned long int v = 0;
-//	unsigned long t1 = 9, t2 = 9;
-//	while ( v < e ) {
-//		c = (unsigned *) realloc( c, ( ++ L ) * sizeof(unsigned) );
-//		if ( c == NULL ) {
-//			fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
-//					ANSI_YELLOW "%s" ANSI_RESET 
-//					"] Dynamic memory allocation failed!\n"
-//					" >> Line %u of file '%s'\n",
-//					__func__, __LINE__, __FILE__ );
-//			exit (EXIT_FAILURE);
-//		}
-//
-//		*( c + L - 1 ) = v + 1;
-//
-//		/* aggiorno il termine generale */
-//		t1 = t1 * 4;
-//		t2 = t2 * 2;
-//		v = t1 - t2;
-//	}
 
 	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET
 			"] Initial kinetic energy: %g\n", K );
@@ -240,19 +205,6 @@ Sistema::next_crash ( void ) {
 
 //	fprintf( stderr, "[] Minimo: %g. Particelle %u - %u\n", minimum, i0, j0 );
 	return minimum;
-
-//	unsigned long int 
-
-	/* XXX for shell sort */
-//	j0 = nMax + 1;
-//	for ( i0 = nMax; j0 > i0; i0 -- ) {
-//		j0 = (size_t) ( *( ct + i0 ) - *list );
-//		printf( "%d, %u, %g\n", i0, j0, **list );
-//	}
-//
-//
-//	/* return lower collision time */
-//	return ** list;
 } /* -----  end of method Sistema::netx_crash  ----- */
 
 /*
@@ -264,15 +216,9 @@ Sistema::next_crash ( void ) {
  */
 double
 Sistema::evolve ( void ) {
-	/* sort collision times */
-//	Sistema::shell_sort();
-
 	/* take colliding time */
 	double t0 = Sistema::next_crash();
 	double t = t0 - tm;
-
-//	fprintf( stderr, "Distanza (1): %g, Sigma: %g\n", Sistema::distance( i0, j0 ), S );
-
 
 	/* temporary particle pointer */
 	struct ptcl *ptr;
@@ -286,23 +232,12 @@ Sistema::evolve ( void ) {
 		}
 	}
 
-//	fprintf( stderr, "Distanza(2): %g, Sigma: %g\n", Sistema::distance( i0, j0 ), S );
-//	fprintf( stderr, "(t: %g) - (tm: %g) = %g (%u, %u)\n", t0, tm, t, i0, j0 );
-//	
-//	for ( d = 0; d < D; d ++ ) {
-//		fprintf( stderr, "v_{%u}(%hu) = %g\n", i0, d, *( (*( p + i0)).v + d ) );
-//		fprintf( stderr, "v_{%u}(%hu) = %g\n", j0, d, *( (*( p + j0)).v + d ) );
-//	}
-//	if ( t < 0 ) {
-////		fprintf( stderr, "tempo negativo: %g (%u, %u)\n", t, i0, j0 );
-//		exit(1);
-//	}
 	/* update system time */
 	tm += t;
 
 	/* collision time for (single) particles */
-	ti0 = fabs( tm - (*( p + i0 )).t_last );
-	tj0 = fabs( tm - (*( p + j0 )).t_last );
+	ti0 = tm - (*( p + i0 )).t_last;
+	tj0 = tm - (*( p + j0 )).t_last;
 	
 	/* update last collision for single particles */
 	(*( p + i0 )).t_last += ti0;
@@ -442,27 +377,6 @@ Sistema::crash_time ( unsigned int i, unsigned int j ) {
 
 	return time;
 } /* -----  end of method Sistema::crash_time  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: mct
- * Description: mean collision time
- * ------------------------------------------------------------------
- */
-//void
-//Sistema::mct ( void ) {
-//	*tau = (double) *tau / crash;
-//	*( tau + 1 ) = (double) *( tau + 1 ) / crash;
-//	*( tau + 1 ) -= *tau * *tau;
-//
-//	printf( "%Lf\t%Lf\n", tau[0], sqrtl( tau[1] / crash ) );
-//	round( *tau, sqrtl( *( tau + 1 )  / crash ) );
-//	printf( "\n" );
-////
-//	
-//	return;
-//} /* -----  end of method Sistema::mct  ----- */
 
 /*
  * ------------------------------------------------------------------
