@@ -212,43 +212,6 @@ Sistema::mass_center_speed ( void ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
- *      Method: shell_sort
- * Description: 
- * ------------------------------------------------------------------
- */
-void
-Sistema::shell_sort ( void ) {
-	/* TODO properly comment this code */
-	register unsigned int i, j;
-	unsigned int h;
-
-	double *tmp;
-    for ( unsigned short int k = 0; k < L; k ++ ) {
-		h = *( c + k );
-		for ( i = h; i < e; i ++ ) {
-			tmp = *( list + i );
-
-			for ( j = i; j >= h && **( list + j - h ) > *tmp; j -= h )
-                *( list + j ) = *( list + j - h );
-
-            *( list + j ) = tmp;
-        }
-    }
-
-
-		printf( "%.16g\n", **( list ) );
-//	for ( unsigned int k = 0; k < e; k ++ ) {
-//		printf( "%g\n", **( list + k ) );
-//		if ( **( list + k ) == HUGE_VAL ) {
-//			printf( "\n" );
- //			k = e + 1;
-//		}
-//	}
-} /* -----  end of method Sistema::shell_sort  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
  *      Method: netx_crash
  * Description: 
  * ------------------------------------------------------------------
@@ -550,12 +513,12 @@ Sistema::exchange ( void ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
- *      Method: time_reset
+ *      Method: reset_time
  * Description: 
  * ------------------------------------------------------------------
  */
 void
-Sistema::time_reset ( void ) {
+Sistema::reset_time ( void ) {
 	double **ptr;
 	register unsigned int j;
 	for ( unsigned int i = 1; i < nMax; i ++ ) {
@@ -565,7 +528,7 @@ Sistema::time_reset ( void ) {
 	}
 
 	tm = (double) 0;
-} /* -----  end of method Sistema::time_reset  ----- */
+} /* -----  end of method Sistema::reset_time  ----- */
 
 /*
  * ------------------------------------------------------------------

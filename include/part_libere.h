@@ -9,10 +9,12 @@
 /* dimension of the space (2- or 3-D) */
 #include "dimensions.h"
 
+
 /* number of particles per side */
-#define N	5
+#define N	7
 /* time step to evaluate $\Delta r^2(t)$ */
 //#define EPS	.001
+
 
 #ifndef  part_libere_INC
 #define  part_libere_INC
@@ -30,16 +32,23 @@ class Sistema: public Particella {
 
 		/* return current value of 'tm' counter */
 		double get_time ( void );
+		/* return current pressure value */
 		double get_pr ( void );
+		/* return d-th component of n-th particle */
 		double get_velocity( unsigned int n, unsigned short d = 0 );
+		/* return kinetic energy */
 		double get_K ( void );
+		/* return kT (obtained from kinetik energy */
 		double get_KT ( void );
 
+		/* reset pressure value to 'val' */
 		void reset_pr ( double val = (double) 0 );
+		/* re-scale time matrix and 'tm' counter */
+		void reset_time ( void );
 
+		/* evolve system between collisions */
 		double evolve ( void );
 
-		void time_reset ( void );
 		/* print particle coordinates */
 		void print_x ( void );
 		/* print free path of particles to '*stream' */
@@ -47,7 +56,10 @@ class Sistema: public Particella {
 		/* print particle collision times to '*stream' */
 		void print_ct( FILE *stream = stdout );
 
-//		void mct ( void );
+		/* speed of center of mass system */
+		void mass_center_speed ( void );
+
+
 		/* numero massimo di particelle nel volume */
 		const static unsigned long int nMax = (unsigned long) 2 * powl( N, D );
 
@@ -60,8 +72,6 @@ class Sistema: public Particella {
 //		const double S = (double) 2 * sqrt( (double) E / ( nMax * M_PI ) );
 		const double S = pow( (double) 6 * E / ( nMax * M_PI ), (double) 1 / D );
 
-		/* speed of center of mass system */
-		void mass_center_speed ( void );
 	private:
 		/* system time, updated at each evolution */
 		double tm = (double) 0;
@@ -69,14 +79,10 @@ class Sistema: public Particella {
 
 		/* colliding particles */
 		unsigned int i0, j0;
+		/* mean collision times and free mean path */
 		double ti0, tj0, li0, lj0;
 
-		/* matrice dei tempi di collisione */
-//		struct CT {
-//			double t;
-//			unsigned int j;
-//		} **ct = NULL;
-
+		/* collision times matrix */
 		double **ct = NULL;
 
 		double r[200], dr[200];
@@ -102,7 +108,7 @@ class Sistema: public Particella {
 		double distance( unsigned int i, unsigned int j );
 
 		/* shell sort algorithm */
-		void shell_sort ( void );
+//		void shell_sort ( void );
 
 		/* exchange particle velocity along r_ij axis */
 		void exchange ( /* unsigned int i = i0, unsigned int j = j0 */ );
@@ -146,6 +152,7 @@ Sistema::get_K ( void ) {
  */
 inline double
 Sistema::get_velocity ( unsigned int n, unsigned short int d ) {
+//	return sqrt( Particella::sp( (*( p + n )).v ) );
 	return *( (*( p + n )). v + d );
 } /* -----  end of method Sistema::get_velocity  ----- */
 
@@ -208,7 +215,6 @@ inline void
 Sistema::print_fp ( FILE *stream ) {
 	fprintf( stream, "%.16g\n%.16g\n", li0, lj0 );
 } /* -----  end of method Sistema::print_fp  ----- */
-
 
 /*
  * ------------------------------------------------------------------
