@@ -27,8 +27,6 @@ class Particella {
 			double x[D]; /* posizione della particella */
 			double v[D]; /* velocità della particella */
 			double t_last = (double) 0;
-//			unsigned int crash = 0;
-//			double t[2] = {};
 		} *p = NULL;
 
 

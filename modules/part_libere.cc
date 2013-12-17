@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <string.h>
+#include <errno.h>
+
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
@@ -44,16 +47,14 @@ Sistema::Sistema ( void ) {
 			"Number :: radius of particles (with N = %u) >> %lu :: %1.1g L\n",
 			(unsigned) N, (unsigned long) nMax, S );
 
-	/* alloco la memoria per i tempi di collisione */
-	ct = (double **) malloc ( nMax * sizeof(double *) );
-	if ( ct == NULL ) {
-		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
-				ANSI_YELLOW "%s" ANSI_RESET 
-				"] Dynamic memory allocation failed!\n"
-				" >> Line %u of file '%s'\n",
-				__func__, __LINE__, __FILE__ );
-		exit (EXIT_FAILURE);
-	}
+//	if ( ct == NULL ) {
+//		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
+//				ANSI_YELLOW "%s" ANSI_RESET 
+//				"] Dynamic memory allocation failed!\n"
+//				" >> Line %u of file '%s'\n",
+//				__func__, __LINE__, __FILE__ );
+//		exit (EXIT_FAILURE);
+//	}
 
 	/* inizializzo posizioni delle particelle */
 	double x[3], y[3];
@@ -65,7 +66,6 @@ Sistema::Sistema ( void ) {
 	/* temporary pointers */
 	struct ptcl *pn, *pm;
 	double **cn, **cm;
-//	double **l = list;
 
 	for ( unsigned short int i = 0; i < N; i ++ ) {
 		/* calcolo la coordinata x */
@@ -210,6 +210,26 @@ Sistema::next_crash ( void ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
+ *      Method: save_coordinates
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Sistema::save_coordinates ( void ) {
+	struct ptcl *ptr;
+
+	register unsigned short d;
+	for ( unsigned int n = 0; n < Sistema::nMax; n ++ ) {
+			ptr = p + n;
+			for ( d = 0; d < D; d ++ )
+				*( *( r + n ) + d ) = *( (*ptr).x + d );
+		}
+
+} /* -----  end of method Sistema::save_coordinates  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Sistema
  *      Method: evolve
  * Description: 
  * ------------------------------------------------------------------
@@ -224,6 +244,45 @@ Sistema::evolve ( void ) {
 	struct ptcl *ptr;
 	/* evolve particle positions */
 	register unsigned short int d;
+
+	unsigned int stop = (unsigned) ( ( t0 - t_e ) / EPS );
+	double R1, R2, tmp;
+	for ( unsigned int k = 0; k < stop; k ++ ) {
+		fprintf( stderr, "tm %g te %g t %g\n", tm, t_e, t );
+
+		R1 = 0.;
+		R2 = 0.;
+		/* stampo le coordinate */
+		for ( unsigned int n = 0; n < Sistema::nMax; n ++ ) {
+			ptr = p + n;
+			for ( d = 0; d < D; d ++ ) {
+				tmp = *( (*ptr).x + d ) - *( *( r + n ) + d ); 
+				tmp = tmp * tmp;
+
+				R1 += tmp;
+				R2 += tmp * tmp;
+
+//				printf( "%.16g\t", *( (*ptr).x + d ) );
+
+				/* evolvo il sistema di EPS */
+				*( (*ptr).x + d ) += EPS * *( (*ptr).v + d );
+				*( (*ptr).x + d ) -= floorf( *( (*ptr).x + d ) );
+			}
+		}
+
+		R1 = R1 / ( 3. * nMax );
+		R2 = R2 / (3. * nMax );
+		R2 -= R1 * R1;
+		R2 = sqrt( R2 ) / (3 * nMax );
+
+		printf( "%.5g\t%.16g\t%.16g\n", t_e, R1, R2 );
+
+		/* aggiorno i tempi */
+		t_e += EPS;
+		tm += EPS;
+		t -= EPS;
+	}
+
 	for ( unsigned int n = 0; n < nMax; n ++ ) {
 		ptr = p + n;
 		for ( d = 0; d < D; d ++ ) {

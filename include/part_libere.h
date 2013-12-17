@@ -11,9 +11,9 @@
 
 
 /* number of particles per side */
-#define N	7
+#define N	5
 /* time step to evaluate $\Delta r^2(t)$ */
-//#define EPS	.001
+#define EPS	.0038
 
 
 #ifndef  part_libere_INC
@@ -46,6 +46,8 @@ class Sistema: public Particella {
 		/* re-scale time matrix and 'tm' counter */
 		void reset_time ( void );
 
+		void save_coordinates ( void );
+
 		/* evolve system between collisions */
 		double evolve ( void );
 
@@ -75,7 +77,8 @@ class Sistema: public Particella {
 	private:
 		/* system time, updated at each evolution */
 		double tm = (double) 0;
-//		long double tau[2] = {};
+		/* time when coordinates where measured last */
+		double t_e = (double) 0;
 
 		/* colliding particles */
 		unsigned int i0, j0;
@@ -83,40 +86,27 @@ class Sistema: public Particella {
 		double ti0, tj0, li0, lj0;
 
 		/* collision times matrix */
-		double **ct = NULL;
+		double *ct[nMax];
+		double r[nMax][D] = {};
 
-		double r[200], dr[200];
-
-		/* number of list entries */
-		static const unsigned long int e = ( nMax ) * ( nMax - 1) / 2;
-		/* sorted list of collision times */
-		double *list[e];
-		/* find a way to evaluate this array */
-		unsigned int L = 0;
-		unsigned int *c = NULL;
-		
 		/* energia cinetica totale (m = 1) */
 		double K = (double) 0;
+
+		/* pressure temporary variable */
 		double pr = (double) 0;
-
-//		unsigned int crash = 0;
-
-		/* takes next crash */
-		double next_crash ( void );
 
 		/* returns distance between particles 'i' and 'j' */
 		double distance( unsigned int i, unsigned int j );
 
-		/* shell sort algorithm */
-//		void shell_sort ( void );
-
 		/* exchange particle velocity along r_ij axis */
 		void exchange ( /* unsigned int i = i0, unsigned int j = j0 */ );
-		/* collision time of particle 'i' with particle 'j' */
-		double crash_time ( unsigned int i, unsigned int j );
 
+		/* return next collision time */
+		double next_crash ( void );
+		/* evaluate colliding time of particle 'i' with particle 'j' */
+		double crash_time ( unsigned int i, unsigned int j );
+		/* update colliding times matrix */
 		void update_crash_times ( double t0 );
-//	protected:
 }; /* -----  end of class Sistema  ----- */
 
 /*

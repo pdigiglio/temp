@@ -51,6 +51,9 @@ main ( /* int argc, char *argv[] */ ) {
 	unsigned int begin = clock();
 
 	Sistema s;
+//	printf( "%.16g\n", s.get_KT() );
+
+//	return 0;
 
 	/* termalizzo */
 	register unsigned int j, k;
@@ -120,9 +123,11 @@ main ( /* int argc, char *argv[] */ ) {
 		exit (EXIT_FAILURE);
 	}
 
+	printf( "#start\n" );
+	s.save_coordinates();
 	double p[2] = {}, ptemp;
 	double t;
-	for ( k = 0 ; k < 1000; k ++ ) {
+	for ( k = 0 ; k < 10000; k ++ ) {
 
 		/* save time before cycle */
 		t = s.get_time();

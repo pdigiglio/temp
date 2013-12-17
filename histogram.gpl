@@ -7,7 +7,7 @@ if ( ! exists("filename") ) {
 }
 
 # Bins default
-bd = 20
+bd = 120
 if ( ! exists("bins") ) {
 	print "Default bins: ".bd
 	bins = bd
