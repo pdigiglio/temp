@@ -3,9 +3,9 @@
 #
 #
 # Main file to compile
-MAIN	= free_part
+MAIN	= lennard_jones #free_part
 # Modules to create
-MODULES	= part_libere round info_time particella
+MODULES	= round info_time particella part_soffici # part_libere
 
 all: $(MAIN)
 
@@ -63,7 +63,7 @@ STD		= gnu++11
 
 # Opzioni
 CXXFLAGS = -W -Wall -Wextra -Wunreachable-code -Wunused -Wformat-security -Wmissing-noreturn \
-		   -O3 -pedantic -std=$(STD) -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) #-fopenmp -time -Ofast
+		   -Ofast -pedantic -std=$(STD) -masm=$(MASM) -march=$(MARCH) -mtune=$(MARCH) #-fopenmp -time -Ofast
 
 # Add includes
 CXXFLAGS += $(INCPATH)
