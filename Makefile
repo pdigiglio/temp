@@ -5,7 +5,7 @@
 # Main file to compile
 MAIN	= free_part
 # Modules to create
-MODULES	= part_libere round info_time
+MODULES	= part_libere round info_time particella
 
 all: $(MAIN)
 
