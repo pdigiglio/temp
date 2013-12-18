@@ -4,17 +4,9 @@
 
 /* base class */
 #include "particella.h"
-/* packing fraction */
-#include "eta.h"
-/* dimension of the space (2- or 3-D) */
-#include "dimensions.h"
 
-
-/* number of particles per side */
-#define N	5
 /* time step to evaluate $\Delta r^2(t)$ */
-#define EPS	.0038
-
+#define EPS	.004
 
 #ifndef  part_libere_INC
 #define  part_libere_INC
@@ -60,19 +52,6 @@ class Sistema: public Particella {
 
 		/* speed of center of mass system */
 		void mass_center_speed ( void );
-
-
-		/* numero massimo di particelle nel volume */
-		const static unsigned long int nMax = (unsigned long) 2 * powl( N, D );
-
-		/* 
-		 * raggio delle sfere
-		 *
-		 * XXX Nel passaggio da 2-D e 3-D i coefficienti e le potenze
-		 * cambiano (a causa del passaggio area -> volume).
-		 */
-//		const double S = (double) 2 * sqrt( (double) E / ( nMax * M_PI ) );
-		const double S = pow( (double) 6 * E / ( nMax * M_PI ), (double) 1 / D );
 
 	private:
 		/* system time, updated at each evolution */

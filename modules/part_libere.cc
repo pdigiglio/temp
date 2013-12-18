@@ -20,42 +20,6 @@
  * ------------------------------------------------------------------
  */
 Sistema::Sistema ( void ) {
-	/* controllo di non aver inserito troppe particelle nella scatola */
-	if ( 2 * S > sqrt( D ) / N ) {
-		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
-				ANSI_YELLOW "%s" ANSI_RESET 
-				"] Sphere radius too high!\n"
-				" >> Line %u of file '%s'\n",
-				__func__, __LINE__, __FILE__ );
-		exit (EXIT_FAILURE);
-
-	}
-
-	/* alloco la memoria per le particelle */
-	p = (struct ptcl *) malloc( nMax * sizeof( struct ptcl ) );
-	if ( p == NULL ) {
-		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
-				ANSI_YELLOW "%s" ANSI_RESET 
-				"] Dynamic memory allocation failed!\n"
-				" >> Line %u of file '%s'\n",
-				__func__, __LINE__, __FILE__ );
-		exit (EXIT_FAILURE);
-	}
-
-	/* stampo a schermo informazioni (n. particelle, raggio) */
-	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET "] "
-			"Number :: radius of particles (with N = %u) >> %lu :: %1.1g L\n",
-			(unsigned) N, (unsigned long) nMax, S );
-
-//	if ( ct == NULL ) {
-//		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
-//				ANSI_YELLOW "%s" ANSI_RESET 
-//				"] Dynamic memory allocation failed!\n"
-//				" >> Line %u of file '%s'\n",
-//				__func__, __LINE__, __FILE__ );
-//		exit (EXIT_FAILURE);
-//	}
-
 	/* inizializzo posizioni delle particelle */
 	double x[3], y[3];
 	/* energia cinetica */
@@ -245,43 +209,44 @@ Sistema::evolve ( void ) {
 	/* evolve particle positions */
 	register unsigned short int d;
 
-	unsigned int stop = (unsigned) ( ( t0 - t_e ) / EPS );
-	double R1, R2, tmp;
-	for ( unsigned int k = 0; k < stop; k ++ ) {
-		fprintf( stderr, "tm %g te %g t %g\n", tm, t_e, t );
-
-		R1 = 0.;
-		R2 = 0.;
-		/* stampo le coordinate */
-		for ( unsigned int n = 0; n < Sistema::nMax; n ++ ) {
-			ptr = p + n;
-			for ( d = 0; d < D; d ++ ) {
-				tmp = *( (*ptr).x + d ) - *( *( r + n ) + d ); 
-				tmp = tmp * tmp;
-
-				R1 += tmp;
-				R2 += tmp * tmp;
-
-//				printf( "%.16g\t", *( (*ptr).x + d ) );
-
-				/* evolvo il sistema di EPS */
-				*( (*ptr).x + d ) += EPS * *( (*ptr).v + d );
-				*( (*ptr).x + d ) -= floorf( *( (*ptr).x + d ) );
-			}
-		}
-
-		R1 = R1 / ( 3. * nMax );
-		R2 = R2 / (3. * nMax );
-		R2 -= R1 * R1;
-		R2 = sqrt( R2 ) / (3 * nMax );
-
-		printf( "%.5g\t%.16g\t%.16g\n", t_e, R1, R2 );
-
-		/* aggiorno i tempi */
-		t_e += EPS;
-		tm += EPS;
-		t -= EPS;
-	}
+//	unsigned int stop = (unsigned) ( ( t0 - t_e ) / EPS );
+//	double R1, R2, tmp;
+//	for ( unsigned int k = 0; k < stop; k ++ ) {
+//		fprintf( stderr, "tm %g te %g t %g\n", tm, t_e, t );
+//
+//		R1 = 0.;
+//		R2 = 0.;
+//		/* stampo le coordinate */
+//		for ( unsigned int n = 0; n < Sistema::nMax; n ++ ) {
+//			ptr = p + n;
+//			for ( d = 0; d < D; d ++ ) {
+//				tmp = *( (*ptr).x + d ) - *( *( r + n ) + d ); 
+//				tmp -= (double) round( tmp );
+//				tmp = tmp * tmp;
+//
+//				R1 += tmp;
+//				R2 += tmp * tmp;
+//
+////				printf( "%.16g\t", *( (*ptr).x + d ) );
+//
+//				/* evolvo il sistema di EPS */
+//				*( (*ptr).x + d ) += EPS * *( (*ptr).v + d );
+//				*( (*ptr).x + d ) -= floorf( *( (*ptr).x + d ) );
+//			}
+//		}
+//
+//		R1 = R1 / ( 3. * nMax );
+//		R2 = R2 / (3. * nMax );
+//		R2 -= R1 * R1;
+//		R2 = sqrt( R2 ) / (3 * nMax );
+//
+//		printf( "%.5g\t%.16g\t%.16g\n", t_e, R1, R2 );
+//
+//		/* aggiorno i tempi */
+//		t_e += EPS;
+//		tm += EPS;
+//		t -= EPS;
+//	}
 
 	for ( unsigned int n = 0; n < nMax; n ++ ) {
 		ptr = p + n;
@@ -462,11 +427,13 @@ Sistema::exchange ( void ) {
 		*( v_ij + d ) = *( (*pi).v + d ) - *( (*pj).v + d );
 	}
 
-	double dv = Particella::sp ( v_ij, R_ij ) / ( S * S );
+	double dv = Particella::sp ( v_ij, R_ij ) / Sistema::S;
 //	printf( "%f %f\n", S, sqrt( Particella::sp(R_ij) ) );
 	
 	/* evaluate pression */
 	pr += fabs( dv );
+
+	dv = dv / Sistema::S;
 
 	/* exchange velocity components */
 	for ( unsigned short int d = 0; d < D; d ++ ) {
