@@ -313,32 +313,6 @@ Sistema::update_crash_times ( double t0 = (double) 0 ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
- *      Method: print_x
- * Description: 
- * ------------------------------------------------------------------
- */
-void
-Sistema::print_x ( void ) {
-	/* pointer to first particle structure */
-	struct ptcl *ptr = p;
-
-	for ( unsigned int n = 0; n < Sistema::nMax; n ++ ) {
-		/* print particle number */
-		fprintf( stdout, "%u\t", n );
-		/* print coordinate values */
-		for ( unsigned short int d = 0; d < D; d ++ )
-			fprintf( stdout, "%f\t", *( (*ptr).x + d ) );
-
-		/* break line */
-		fprintf( stdout, "\n" );
-		/* update pointer */
-		ptr ++;
-	}
-} /* -----  end of method Sistema::print_x  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
  *      Method: crash_time
  * Description: 
  * ------------------------------------------------------------------

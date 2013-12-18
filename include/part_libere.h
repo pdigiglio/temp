@@ -26,12 +26,6 @@ class Sistema: public Particella {
 		double get_time ( void );
 		/* return current pressure value */
 		double get_pr ( void );
-		/* return d-th component of n-th particle */
-		double get_velocity( unsigned int n, unsigned short d = 0 );
-		/* return kinetic energy */
-		double get_K ( void );
-		/* return kT (obtained from kinetik energy */
-		double get_KT ( void );
 
 		/* reset pressure value to 'val' */
 		void reset_pr ( double val = (double) 0 );
@@ -43,8 +37,6 @@ class Sistema: public Particella {
 		/* evolve system between collisions */
 		double evolve ( void );
 
-		/* print particle coordinates */
-		void print_x ( void );
 		/* print free path of particles to '*stream' */
 		void print_fp( FILE *stream = stdout );
 		/* print particle collision times to '*stream' */
@@ -68,14 +60,8 @@ class Sistema: public Particella {
 		double *ct[nMax];
 		double r[nMax][D] = {};
 
-		/* energia cinetica totale (m = 1) */
-		double K = (double) 0;
-
 		/* pressure temporary variable */
 		double pr = (double) 0;
-
-		/* returns distance between particles 'i' and 'j' */
-		double distance( unsigned int i, unsigned int j );
 
 		/* exchange particle velocity along r_ij axis */
 		void exchange ( /* unsigned int i = i0, unsigned int j = j0 */ );
@@ -87,43 +73,6 @@ class Sistema: public Particella {
 		/* update colliding times matrix */
 		void update_crash_times ( double t0 );
 }; /* -----  end of class Sistema  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: get_KT
- * Description: return KT evaluated from kinetic energy
- * ------------------------------------------------------------------
- */
-inline double
-Sistema::get_KT ( void ) {
-	return (double) 2 * K / ( D * nMax );
-} /* -----  end of method Sistema::get_KT  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: get_K
- * Description: return kinetic energy
- * ------------------------------------------------------------------
- */
-inline double
-Sistema::get_K ( void ) {
-	return (double) K;
-} /* -----  end of method Sistema::get_K  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: get_velocity
- * Description: return d-th velocity component of n-th particle
- * ------------------------------------------------------------------
- */
-inline double
-Sistema::get_velocity ( unsigned int n, unsigned short int d ) {
-//	return sqrt( Particella::sp( (*( p + n )).v ) );
-	return *( (*( p + n )). v + d );
-} /* -----  end of method Sistema::get_velocity  ----- */
 
 /*
  * ------------------------------------------------------------------
@@ -184,23 +133,5 @@ inline void
 Sistema::print_fp ( FILE *stream ) {
 	fprintf( stream, "%.16g\n%.16g\n", li0, lj0 );
 } /* -----  end of method Sistema::print_fp  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: distance
- * Description: return distance between i-th and j-th particles
- * ------------------------------------------------------------------
- */
-inline double
-Sistema::distance ( unsigned int i, unsigned int j ) {
-	double r[D];
-	for ( unsigned int d = 0; d < D; d ++ ) {
-		*( r + d ) = *( (*(p + i)).x + d ) - *( (*(p + j)).x + d );
-		*( r + d ) -= round( *( r + d ) );
-	}
-
-	return sqrt( Particella::sp( r ) );
-} /* -----  end of method Sistema::distance  ----- */
 
 #endif   /* ----- #ifndef part_libere_INC  ----- */

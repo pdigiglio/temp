@@ -39,6 +39,32 @@ Particella::Particella (void) {
 					ANSI_YELLOW "%s" ANSI_RESET "] constructed.\n", __func__ );
 } /* -----  end of method Particella::Particella (ctor)  ----- */
 
+/*
+ * ------------------------------------------------------------------
+ *       Class: Particella
+ *      Method: print_x
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Particella::print_x ( void ) {
+	/* pointer to first particle structure */
+	struct ptcl *ptr = p;
+
+	for ( unsigned int n = 0; n < Particella::nMax; n ++ ) {
+		/* print particle number */
+		fprintf( stdout, "%u\t", n );
+		/* print coordinate values */
+		for ( unsigned short int d = 0; d < D; d ++ )
+			fprintf( stdout, "%f\t", *( (*ptr).x + d ) );
+
+		/* break line */
+		fprintf( stdout, "\n" );
+		/* update pointer */
+		ptr ++;
+	}
+} /* -----  end of method Particella::print_x  ----- */
+
 ///*
 // * ------------------------------------------------------------------
 // *       Class: Particella
