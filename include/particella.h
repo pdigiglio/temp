@@ -9,7 +9,7 @@
 #include "eta.h"
 
 /* number of particles per side */
-#define N	7
+#define N	5
 
 #ifndef  particella_INC
 #define  particella_INC
@@ -29,14 +29,23 @@ class Particella {
 		double get_velocity( unsigned int n, unsigned short d = 0 );
 		/* return kinetic energy */
 		double get_K ( void );
+		/* return internal energy */
+		double get_U ( void );
 		/* return kT (obtained from kinetik energy */
-		double get_KT ( void );
+		virtual double get_KT ( void );
+		/* return current pressure value */
+		double get_pr ( void );
+
+		/* reset pressure value to 'val' */
+		void reset_pr ( double val = (double) 0 );
 
 		/* print particle coordinates */
 		void print_x ( void );
 
 		/* numero massimo di particelle nel volume */
 		const static unsigned long int nMax = (unsigned long) 2 * powl( N, D );
+		/* numero di coppie di particelle */
+		const static unsigned long int e = nMax * ( nMax - 1 ) / 2;
 
 		/* 
 		 * raggio delle sfere
@@ -52,11 +61,17 @@ class Particella {
 		struct ptcl {
 			double x[D]; /* posizione della particella */
 			double v[D]; /* velocità della particella */
+			double a[D]; /* accelerazione della particella */
 			double t_last = (double) 0;
 		} p[ nMax ];// = NULL;
 
 		/* energia cinetica totale (m = 1) */
 		double K = (double) 0;
+		/* energia interna */
+		double U = (double) 0;
+
+		/* pressure temporary variable */
+		double pr = (double) 0;
 
 		/* Scalar product between two vectors, a and b, in D dimensions */
 		double sp ( const double *a, const double *b );
@@ -86,6 +101,30 @@ Particella::get_KT ( void ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Particella
+ *      Method: get_pr
+ * Description: return current value of pressure
+ * ------------------------------------------------------------------
+ */
+inline double
+Particella::get_pr ( void ) {
+	return pr;
+} /* -----  end of method Particella::get_pr  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Particella
+ *      Method: reset_pr
+ * Description: reset pressure counter
+ * ------------------------------------------------------------------
+ */
+inline void
+Particella::reset_pr ( double val ) {
+	pr = (double) val;
+} /* -----  end of method Particella::reset_pr  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Particella
  *      Method: get_K
  * Description: return kinetic energy
  * ------------------------------------------------------------------
@@ -94,6 +133,18 @@ inline double
 Particella::get_K ( void ) {
 	return (double) K;
 } /* -----  end of method Particella::get_K  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Particella
+ *      Method: get_U
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline double
+Particella::get_U ( void ) {
+	return (double) U;
+} /* -----  end of method Particella::get_U  ----- */
 
 /*
  * ------------------------------------------------------------------

@@ -64,38 +64,3 @@ Particella::print_x ( void ) {
 		ptr ++;
 	}
 } /* -----  end of method Particella::print_x  ----- */
-
-///*
-// * ------------------------------------------------------------------
-// *       Class: Particella
-// *      Method: Particella
-// * Description: [copy ctor]
-// * ------------------------------------------------------------------
-// */
-//Particella::Particella (const Particella &other) {
-//} /* -----  end of method Particella::Particella (copy ctor)  ----- */
-//
-///*
-// * ------------------------------------------------------------------
-// *       Class: Particella
-// *      Method: ~Particella
-// * Description: destructor
-// * ------------------------------------------------------------------
-// */
-//Particella::~Particella (void) {
-//} /* -----  end of method Particella::~Particella (dtor)  ----- */
-//
-///*
-// * ------------------------------------------------------------------
-// *       Class: Particella
-// *      Method: operator '='
-// * Description: assignment operator
-// * ------------------------------------------------------------------
-// */
-//Particella&
-//Particella::operator = (const Particella &other) {
-//	if ( this != &other ) {
-//	}
-//	return *this;
-//} /* -----  end of method Particella::operator =  (ass. op.)  ----- */
-//
