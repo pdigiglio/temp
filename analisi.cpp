@@ -164,8 +164,12 @@ main ( int argc, char *argv[] ) {
 		*( err + j ) = *( err + j ) / l;
 		*( err + j ) = (double) sqrt( *( err + j ) - pow( *( mean + j ), (double) 2) );
 
-		/* stampo nel file varianza e sdom */
+		fprintf( stream, "#mean\tvariance\tmean\tsdom\n" );
+		/* stampo nel file media e varianza */
 		round( *( mean + j), *( err + j ) / sqrt( l ), stream );
+		fprintf( stream, "\t" );
+		/* stampo nel file media e sdom */
+		round( *( mean + j), *( err + j ) / l, stream );
 	}
 	fprintf( stream, "\n" );
 
