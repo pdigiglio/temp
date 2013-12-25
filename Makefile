@@ -3,16 +3,20 @@
 #
 #
 # Main file to compile
-MAIN	= lennard_jones #free_part
+MAIN	= ising #lennard_jones # free_part
 # Modules to create
-MODULES	= round info_time particella part_soffici # part_libere
+COMMON	= round info_time
+
+MODULES	= $(COMMON)
+#MODULES += particella part_soffici # part_libere
+MODULES	+= reticolo
 
 all: $(MAIN)
 
 # Clean directory from dependences, objects and executable
 clean:
 #	@echo -e "rm `tput bold``tput setaf 6`--recursive --force --verbose`tput sgr0` *.d *.o .tmp $(MAIN)"
-	@-rm --recursive --force --verbose *.o *.d $(MAIN)
+	@-rm --recursive --force --verbose *.o *.d free_part lennard_jones analisi
 .PHONY: all clean
 
 # Directory for modules and headers (every header is supposed to be
