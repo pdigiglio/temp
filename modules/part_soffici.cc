@@ -113,7 +113,7 @@ double
 Soft::evolve ( void ) {
 	/* vector radius connecting particles, modulus, mean modulus */
 	double r_ij[D];
-	register double r, mr = 0., p;
+	register double r, mr = 0., pt;
 	/* temporary variable for force */
 	register double f;
 	/* temporary particle pointers */
@@ -152,7 +152,7 @@ Soft::evolve ( void ) {
 			/* assign force */
 			f = Soft::F( r );
 			/* update temporary pressure */
-			p += f * r;
+			pt -= f * r;
 			/* scale force */
 			f /= r;
 			
@@ -185,7 +185,7 @@ Soft::evolve ( void ) {
 	kinetic /= (double) 2;
 
 	/* update pressure */
-	pr += pr / kinetic;
+	pr += pt / kinetic;
 
 	/* assign kinetic and internal energies per particle */
 	K = kinetic / Particella::nMax;
