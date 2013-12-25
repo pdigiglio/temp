@@ -61,6 +61,8 @@ main ( void ) {
 		}
 //		s.set_kT( 1.2 );
 	}
+
+	s.reset_pr();
 	
 	char r_file_name[] = "radius.dat"; /* output-file name */
 	FILE *r = fopen( r_file_name, "w" );
@@ -89,8 +91,11 @@ main ( void ) {
 		exit (EXIT_FAILURE);
 	}
 
+	double press = (double) 0, epress = (double) 0;
 	double pct = (double) 0;
 	for ( unsigned short int k = 0; k < LIFE; k ++ ) {
+		/* aggiorno le variabili di controllo */
+		pct = (double) 100 * ( (double) k / LIFE );
 		/* stampo la percentuale */
 		fprintf( stderr, "Step n. %u of %u. Completed %.4g %%\r", k, LIFE, pct );
 		
@@ -103,8 +108,9 @@ main ( void ) {
 		for ( j = 0; j < Particella::nMax; j ++ )
 			fprintf( speed, "%.16g\n", s.get_velocity( j ) );
 
-		/* aggiorno le variabili di controllo */
-		pct = (double) 100 * ( (double) k / LIFE );
+		fprintf( p, "%.16g\n", s.get_pr() );
+
+		s.reset_pr();
 	}
 
 	if( fclose(r) == EOF ) { /* close output file */

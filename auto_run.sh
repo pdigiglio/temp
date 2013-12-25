@@ -31,10 +31,10 @@ make_header () {
 }
 
 
-first=90
-step=1
-last=110
-max=200
+first=20
+step=4
+last=68
+max=100
 
 N=250
 

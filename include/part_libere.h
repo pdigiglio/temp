@@ -6,7 +6,7 @@
 #include "particella.h"
 
 /* time step to evaluate $\Delta r^2(t)$ */
-#define EPS	.004
+#define EPS	.006
 
 #ifndef  part_libere_INC
 #define  part_libere_INC
@@ -24,11 +24,7 @@ class Sistema: public Particella {
 
 		/* return current value of 'tm' counter */
 		double get_time ( void );
-		/* return current pressure value */
-		double get_pr ( void );
 
-		/* reset pressure value to 'val' */
-		void reset_pr ( double val = (double) 0 );
 		/* re-scale time matrix and 'tm' counter */
 		void reset_time ( void );
 
@@ -60,9 +56,6 @@ class Sistema: public Particella {
 		double *ct[nMax];
 		double r[nMax][D] = {};
 
-		/* pressure temporary variable */
-		double pr = (double) 0;
-
 		/* exchange particle velocity along r_ij axis */
 		void exchange ( /* unsigned int i = i0, unsigned int j = j0 */ );
 
@@ -77,18 +70,6 @@ class Sistema: public Particella {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
- *      Method: get_pr
- * Description: return current value of pressure
- * ------------------------------------------------------------------
- */
-inline double
-Sistema::get_pr ( void ) {
-	return pr;
-} /* -----  end of method Sistema::get_pr  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
  *      Method: get_time
  * Description: return current system time
  * ------------------------------------------------------------------
@@ -97,17 +78,6 @@ inline double
 Sistema::get_time ( void ) {
 	return (double) tm;
 } /* -----  end of method Sistema::get_time  ----- */
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: reset_pr
- * Description: reset pressure counter
- * ------------------------------------------------------------------
- */
-inline void
-Sistema::reset_pr ( double val ) {
-	pr = (double) val;
-} /* -----  end of method Sistema::reset_pr  ----- */
 
 /*
  * ------------------------------------------------------------------

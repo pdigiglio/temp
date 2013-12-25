@@ -7,7 +7,7 @@ if ( ! exists("filename") ) {
 }
 
 # Bins default
-bd = 120
+bd = 100
 if ( ! exists("bins") ) {
 	print "Default bins: ".bd
 	bins = bd
@@ -54,20 +54,20 @@ lab =  sprintf( "Data\n".\
 # Trova automaticamente il dominio
 set autoscale
 
-set terminal png size 800,600
-set output filename.".png"
+#set terminal png size 800,600
+#set output filename.".png"
 
 plot filename.".dat" using ( bin( $1, binwidth ) ):( 1.0 / Norm ) smooth freq with boxes title lab
 
 
-set table
-set output filename."_histo.dat"
+#set table
+#set output filename."_histo.dat"
 
 # Funzione per creare i bin (per TikZ)
-bin(x, width) = width * ( floor( x / width ) )
+#bin(x, width) = width * ( floor( x / width ) )
 
-replot
+#replot
 
 #plot filename.".dat" using ( bin( $1, binwidth ) ):(1.0 / Norm ) smooth freq with boxes title lab
 
-unset table
+#unset table

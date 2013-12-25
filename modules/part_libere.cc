@@ -103,7 +103,7 @@ Sistema::Sistema ( void ) {
 	}
 
 	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET
-			"] Initial kinetic energy: %g\n", K );
+			"] Initial kinetic energy: %.16g\n", K );
 
 //	exit( EXIT_SUCCESS );
 	/* stampa la velocità del centro di massa */
@@ -209,44 +209,44 @@ Sistema::evolve ( void ) {
 	/* evolve particle positions */
 	register unsigned short int d;
 
-//	unsigned int stop = (unsigned) ( ( t0 - t_e ) / EPS );
-//	double R1, R2, tmp;
-//	for ( unsigned int k = 0; k < stop; k ++ ) {
+	unsigned int stop = (unsigned) ( ( t0 - t_e ) / EPS );
+	double R1, R2, tmp;
+	for ( unsigned int k = 0; k < stop; k ++ ) {
 //		fprintf( stderr, "tm %g te %g t %g\n", tm, t_e, t );
-//
-//		R1 = 0.;
-//		R2 = 0.;
-//		/* stampo le coordinate */
-//		for ( unsigned int n = 0; n < Sistema::nMax; n ++ ) {
-//			ptr = p + n;
-//			for ( d = 0; d < D; d ++ ) {
-//				tmp = *( (*ptr).x + d ) - *( *( r + n ) + d ); 
-//				tmp -= (double) round( tmp );
-//				tmp = tmp * tmp;
-//
-//				R1 += tmp;
-//				R2 += tmp * tmp;
-//
-////				printf( "%.16g\t", *( (*ptr).x + d ) );
-//
-//				/* evolvo il sistema di EPS */
-//				*( (*ptr).x + d ) += EPS * *( (*ptr).v + d );
-//				*( (*ptr).x + d ) -= floorf( *( (*ptr).x + d ) );
-//			}
-//		}
-//
-//		R1 = R1 / ( 3. * nMax );
-//		R2 = R2 / (3. * nMax );
-//		R2 -= R1 * R1;
-//		R2 = sqrt( R2 ) / (3 * nMax );
-//
-//		printf( "%.5g\t%.16g\t%.16g\n", t_e, R1, R2 );
-//
-//		/* aggiorno i tempi */
-//		t_e += EPS;
-//		tm += EPS;
-//		t -= EPS;
-//	}
+
+		R1 = 0.;
+		R2 = 0.;
+		/* stampo le coordinate */
+		for ( unsigned int n = 0; n < Sistema::nMax; n ++ ) {
+			ptr = p + n;
+			for ( d = 0; d < D; d ++ ) {
+				tmp = *( (*ptr).x + d ) - *( *( r + n ) + d ); 
+				tmp -= (double) round( tmp );
+				tmp = tmp * tmp;
+
+				R1 += tmp;
+				R2 += tmp * tmp;
+
+//				printf( "%.16g\t", *( (*ptr).x + d ) );
+
+				/* evolvo il sistema di EPS */
+				*( (*ptr).x + d ) += EPS * *( (*ptr).v + d );
+				*( (*ptr).x + d ) -= floorf( *( (*ptr).x + d ) );
+			}
+		}
+
+		R1 = R1 / nMax;
+		R2 = R2 / nMax;
+		R2 -= R1 * R1;
+		R2 = sqrt( R2 ) / nMax;
+
+		printf( "%.5g\t%.16g\t%.16g\n", t_e, R1, R2 );
+
+		/* aggiorno i tempi */
+		t_e += EPS;
+		tm += EPS;
+		t -= EPS;
+	}
 
 	for ( unsigned int n = 0; n < nMax; n ++ ) {
 		ptr = p + n;
@@ -260,16 +260,20 @@ Sistema::evolve ( void ) {
 	tm += t;
 
 	/* collision time for (single) particles */
-	ti0 = tm - (*( p + i0 )).t_last;
-	tj0 = tm - (*( p + j0 )).t_last;
-	
-	/* update last collision for single particles */
-	(*( p + i0 )).t_last += ti0;
-	(*( p + j0 )).t_last += tj0;
+	ptr = p + i0;
+	ti0 = tm - (*ptr).t_last;
+	tj0 = tm - (*ptr).t_last;
 
 	/* free path */
-	li0 = ti0 * sqrt( Particella::sp( (*(p + i0)).v ) );
-	lj0 = tj0 * sqrt( Particella::sp( (*(p + j0)).v ) );
+	li0 = ti0 * sqrt( Particella::sp( (*ptr).v ) );
+	
+	/* update last collision for single particles */
+	ptr = p + j0;
+	(*ptr).t_last += ti0;
+	(*ptr).t_last += tj0;
+
+	/* free path */
+	lj0 = tj0 * sqrt( Particella::sp( (*ptr).v ) );
 
 	/* update colliding particles velocities */
 	Sistema::exchange();
