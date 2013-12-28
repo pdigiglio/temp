@@ -7,7 +7,7 @@ Sorgenti di eseguibili utilizzati per studiare numericamente dei sistemi fisici 
 Il file  ***free_part.cpp*** è simula numericamente un sistema di _N_ particelle in un volume cubico di lato _L_ finito con condizioni di periodicità al bordo.
 Le particelle sono sfere di raggio _r<sub>0</sub>_ interagenti col potenziale di _sfera dura_, che vale _0_ per distanze maggiori di _r<sub>0</sub>_ e infinito per distanze minori di _r<sub>0</sub>_.
 
-## Algoritmo
+### Algoritmo
 
 La simulazione viene effettuata riducendo il problema fisico agli urti tra
 particelle, poiché tra un urto ed il successivo i corpi si muovono di
@@ -15,7 +15,7 @@ moto rettilineo uniforme.
 Si può dichiarare dunque una matrice dei tempi di collisione _T_ in cui l'elemento _(i, j)_ rappresenti l'intervallo temporale tra il tempo attuale _t_ e il prossimo urto delle particelle _i_-esima e _j_-esima.
 La matrice _T_ è simmetrica, pertanto, nel programma si è dichiarata, mediante allocazione dinamica della memoria, una matrice triangolare (inferiore).
 
-### Evoluzione
+#### Evoluzione
 
 L'evoluzione avviene iterando i seguenti passaggi:
 
@@ -24,7 +24,7 @@ L'evoluzione avviene iterando i seguenti passaggi:
 * Si aggiornano le velocità delle particelle _i<sub>0</sub>_-esima e _j<sub>0</sub>_-esima (si scambiano le componenti delle loro velocità lungo l'asse che le congiunce);
 * Si riaggiorna gli elementi della matrice _T_ che coinvolgono gli indici _i<sub>0</sub>_ e _j<sub>0</sub>_.
 
-### Inizializzazione
+#### Inizializzazione
 
 Le velocità dello stato iniziale vengono estratte casualmente.
 Si fa in modo che il sistema non abbia un moto ordinato (il sistema di riferimento centro
