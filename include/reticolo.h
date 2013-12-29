@@ -3,7 +3,9 @@
 #define  reticolo_INC
 
 /* lattice side */
-#define	L	10
+#define	L	7
+/* temperature */
+#define B	1.
 
 /*
  * ==================================================================
@@ -18,7 +20,13 @@ class Reticolo {
 		~Reticolo (void); /* dtor */
 
 		double get_E ( void );
+		double get_M ( void );
 
+		void sweep ( void );
+		void Sweep ( void );
+		/* return energy of site (i,j) */
+		short int single_E ( unsigned int i, unsigned int j );
+		
 		/* assignment operator */
 //		Reticolo& operator = (const Reticolo &other);
 
@@ -26,14 +34,41 @@ class Reticolo {
 		/* short-cut to extend do Potts model */
 		typedef bool Sito;
 
+		/* useful constant */
+		static const unsigned int L2 = L * L;
+
 		Sito x[L][L] = {};
+		bool ckd[L][L] = {};
+		bool ckd_status = (bool) 0;
+		
+		const unsigned int head = 0;
+		unsigned int tail = 0;
+		unsigned int stack[L2][2];
+
+		/* number of sweeps */
+		unsigned int t = 0;
 
 		/* energy (initially 4L^2) */
-		double E = (double) 4 * L * L;
+		double E = (double) - 4 * L2;
 
-		/* return energy of site (i,j) */
-		double single_E ( unsigned int i, unsigned int j );
+		/* current magnetization */
+		double M;
+		/* mean magnetization */
+		double m[2] = {};
 
+//		unsigned short int t[16] = {
+//			1, 2, 4, 8,
+//			16, 32, 64, 128,
+//			256, 512, 1024, 2048,
+//			4096, 8192, 16384, 32768
+//		};
+
+
+
+		/* return spin */
+//		bool spin ( unsigned int i, unsigned int j );
+		
+		void cluster ( unsigned int i, unsigned int j );
 	private:
 }; /* -----  end of class Reticolo  ----- */
 
@@ -52,33 +87,54 @@ Reticolo::get_E ( void ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Reticolo
+ *      Method: get_M
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline double
+Reticolo::get_M ( void ) {
+	/* normalize magnetization (divide by volume) */
+	return (double) 2 * M / L2 - 1;
+} /* -----  end of method Reticolo::get_M  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
  *      Method: single_E
  * Description: TODO rendere elegante e efficiente!
  * ------------------------------------------------------------------
  */
-inline double
+inline short int
 Reticolo::single_E ( unsigned int i, unsigned int j ) {
-	double temp = (double) 0;
 
-	i --;
-	j --;
+	/* energy and counter */
+	short int temp = 0, f;
+	Sito *ptr = *( x + i );
 
-	register unsigned short int f;
-
-	Sito *ptr = *( x + i ) + j;
-	for ( f = 0; f < 3; f += 2 ) {
-		temp += *( ptr + f );
-		temp += *( *( x + i + f ) + j );
+	/* sum of spins { 0,1 } */
+	for ( f = -1; f < 2; f += 2 ) {
+		temp += *( ptr + ( L + j + f ) / L );
+		temp += *( *( x + ( L + i + f ) / L ) + j );
 	}
 
-	temp *= (double) 2;
+	/* spins { 0,1 } -> { -1, 1 } */
+	temp *= 2;
 	temp -= 4;
 
-	i ++;
-	j ++;
-
-	temp *= (double) 2 * *( *( x + i ) + j ) - 1;
-	return temp;
+	temp *= 2 * *( *( x + i ) + j ) - 1;
+	return - temp;
 } /* -----  end of method Reticolo::single_E  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: spin
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+//inline bool
+//Reticolo::spin ( unsigned int i, unsigned int j ) {
+//	return (bool) ( *( *( x + i) + j / 16 ) & *( t + j % 16 ) );
+//} /* -----  end of method Reticolo::spin  ----- */
 
 #endif   /* ----- #ifndef reticolo_INC  ----- */
