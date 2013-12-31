@@ -106,6 +106,8 @@ Reticolo::Sweep ( void ) {
 		}
 	}
 
+	/* update time (sweep) counter */
+	t ++;
 } /* -----  end of method Reticolo::Sweep  ----- */
 
 /*
@@ -120,56 +122,81 @@ Reticolo::cluster ( unsigned int i, unsigned int j ) {
 	/* flip spin with 50 % probability */
 	bool flip = (bool) ( rand() % 2 );
 
-	short int a, b;
 	short int n, m;
 
+	/* assign initial cluster site */
+	**stack = i;
+	*( *stack + 1 ) = j;
+
+	/* update 'ckd' */
+	*( *( ckd + i ) + j ) = !*( *( ckd + i ) + j );
+
+	/* firs free element of the stack */
 	tail = 1;
 
 	fprintf( stderr, "\n" );
-	do {
-		tail --;
 
-		fprintf( stderr, "%u %u\n", i ,j );
+	unsigned short int a;
+	do {
+		/* free last stack element */
+		tail --;
+		i = **( stack + tail );
+		j = *( *( stack + tail ) + 1 );
+
+//		fprintf( stdout, "(%u, %u)\n", i, j );
 
 		/* sweep over nearest neighbours */
-		for ( a = -1; a < 2; a ++ ) {
-			n = ( L + i + a ) % L;
+		for ( a = 0; a < 4; a ++ ) {
+			/* assign neighbours coordinates */
+			n = (unsigned) ( (signed) L + i + *( *( s + a ) ) ) % L;
+			m = (unsigned) ( (signed) L + j + *( *( s + a ) + 1 ) ) % L;
 
-			for ( b = -1; b < 2; b ++ ) {
-				m = ( L + j + b ) % L;
+			/* if spin does not belong to a cluster */
+			if ( *( *( ckd + n ) + m ) == ckd_status ) {
 
-				/* if spin does not belong to a cluster */
-				if ( *( *( ckd + n ) + m ) == ckd_status ) {
+				/* if spin are anti-parallel */
+				if ( *( *( x + i ) + j ) ^ *( *( x + n ) + m ) ) {
 
-					/* if spin are anti-parallel */
-					if ( *( *( x + i ) + j ) ^ *( *( x + n ) + m ) ) {
+					/* check wether activate bond or not */
+					if ( (long double) rand() / RAND_MAX <= EB ) {
+						/* push ( n, m ) into stack */
+						**( stack + tail ) = n;
+						*( *(stack + tail ) + 1 ) = m;
 
-						/* check wether activate bond or not */
-						if ( (long double) 1 - rand() / RAND_MAX >= expl( - B ) ) {
-							/* push ( n, m ) into stack */
-							**( stack + tail) = n;
-							*( *(stack + tail ) + 1 ) = m;
+						/* TikZ */
+						printf( "\\draw (%u, %u) -- (%u, %u);\n", i, j, n, m );
+						/* increase 'tail' */
+						tail ++;
 
-							/* increase 'tail' */
-							tail ++;
-
-							/* update 'ckd' */
-							*( *( ckd + n ) + m ) = !*( *( ckd + n ) + m );
-						}
-						
+						/* update 'ckd' */
+						*( *( ckd + n ) + m ) = !*( *( ckd + n ) + m );
 					}
-					
 				}
 			}
 		}
 
 		/* flip spin */
 		*( *( x + i ) + j ) ^= flip;
-
-		i = **( stack + tail );
-		j = *( *( stack + tail ) + 1 );
-
 	} while ( tail != head );
 
 } /* -----  end of method Reticolo::cluster  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: print_lattice
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Reticolo::print_lattice ( void ) {
+	register unsigned short int j;
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		for ( j = 0; j < L; j ++ ) {
+			if ( *( *( x + i ) + j ) ) {
+				fprintf( stderr, "%u/%u, ", i, j );
+			}
+		}
+	}
+} /* -----  end of method Reticolo::print_lattice  ----- */
 

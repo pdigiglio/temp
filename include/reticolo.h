@@ -2,10 +2,12 @@
 #ifndef  reticolo_INC
 #define  reticolo_INC
 
+#include <math.h>
+
 /* lattice side */
-#define	L	7
+#define	L	8
 /* temperature */
-#define B	1.
+#define B	.5
 
 /*
  * ==================================================================
@@ -24,6 +26,8 @@ class Reticolo {
 
 		void sweep ( void );
 		void Sweep ( void );
+
+		void print_lattice ( void );
 		/* return energy of site (i,j) */
 		short int single_E ( unsigned int i, unsigned int j );
 		
@@ -36,11 +40,21 @@ class Reticolo {
 
 		/* useful constant */
 		static const unsigned int L2 = L * L;
+		const long double EB = (long double) 1 - expl( -B );
 
 		Sito x[L][L] = {};
+
 		bool ckd[L][L] = {};
 		bool ckd_status = (bool) 0;
 		
+		/* auxiliary array to check nearest neighbours */
+		const signed short int s[4][2] = {
+			{ 0, 1 },
+			{ 1, 0 },
+			{ 0, -1 },
+			{ -1, 0 }
+		};
+
 		const unsigned int head = 0;
 		unsigned int tail = 0;
 		unsigned int stack[L2][2];
