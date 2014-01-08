@@ -5,11 +5,8 @@
 /* dimension of the space (2- or 3-D) */
 #include "dimensions.h"
 
-/* packing fraction */
-#include "eta.h"
-
 /* number of particles per side */
-#define N	5
+#define N	4
 
 #ifndef  particella_INC
 #define  particella_INC
@@ -29,6 +26,8 @@ class Particella {
 		double get_velocity( unsigned int n, unsigned short d = 0 );
 		/* return kinetic energy */
 		double get_K ( void );
+		/* return current value of 'tm' counter */
+		double get_time ( void );
 		/* return internal energy */
 		double get_U ( void );
 		/* return kT (obtained from kinetik energy */
@@ -47,15 +46,6 @@ class Particella {
 		/* numero di coppie di particelle */
 		const static unsigned long int e = nMax * ( nMax - 1 ) / 2;
 
-		/* 
-		 * raggio delle sfere
-		 *
-		 * XXX Nel passaggio da 2-D e 3-D i coefficienti e le potenze
-		 * cambiano (a causa del passaggio area -> volume).
-		 */
-//		const double S = (double) 2 * sqrt( (double) E / ( nMax * M_PI ) );
-		const double S = pow( (double) 6 * E / ( nMax * M_PI ), (double) 1 / D );
-
 	protected:
 		/* record che rappresenta una particella */
 		struct ptcl {
@@ -64,6 +54,9 @@ class Particella {
 			double a[D]; /* accelerazione della particella */
 			double t_last = (double) 0;
 		} p[ nMax ];// = NULL;
+
+		/* for portability */
+//		typedef;
 
 		/* energia cinetica totale (m = 1) */
 		double K = (double) 0;
@@ -75,6 +68,9 @@ class Particella {
 
 		/* Scalar product between two vectors, a and b, in D dimensions */
 		double sp ( const double *a, const double *b );
+		
+		/* system time, updated at each evolution */
+		double tm = (double) 0;
 
 		/*
 		 * The same as above: if only 'a' is given, it returns his
@@ -101,13 +97,25 @@ Particella::get_KT ( void ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Particella
+ *      Method: get_time
+ * Description: return current system time
+ * ------------------------------------------------------------------
+ */
+inline double
+Particella::get_time ( void ) {
+	return (double) tm;
+} /* -----  end of method Particella::get_time  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Particella
  *      Method: get_pr
  * Description: return current value of pressure
  * ------------------------------------------------------------------
  */
 inline double
 Particella::get_pr ( void ) {
-	return pr;
+	return (double) pr;
 } /* -----  end of method Particella::get_pr  ----- */
 
 /*

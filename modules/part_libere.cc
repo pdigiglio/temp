@@ -20,6 +20,22 @@
  * ------------------------------------------------------------------
  */
 Sistema::Sistema ( void ) {
+	/* stampo a schermo informazioni (n. particelle, raggio) */
+	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET "] "
+			"Number :: radius of particles (with N = %u) >> %lu :: %1.1g L\n",
+			(unsigned) N, (unsigned long) nMax, S );
+	
+	/* controllo di non aver inserito troppe particelle nella scatola */
+	if ( 2 * S > sqrt( D ) / N ) {
+		fprintf ( stderr, "[" ANSI_RED "error" ANSI_RESET ": "
+				ANSI_YELLOW "%s" ANSI_RESET 
+				"] Sphere radius too high!\n"
+				" >> Line %u of file '%s'\n",
+				__func__, __LINE__, __FILE__ );
+		exit (EXIT_FAILURE);
+
+	}
+
 	/* inizializzo posizioni delle particelle */
 	double x[3], y[3];
 	/* energia cinetica */

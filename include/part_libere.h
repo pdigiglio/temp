@@ -4,6 +4,7 @@
 
 /* base class */
 #include "particella.h"
+#include "eta.h"
 
 /* time step to evaluate $\Delta r^2(t)$ */
 #define EPS	.006
@@ -22,9 +23,6 @@ class Sistema: public Particella {
 		Sistema ( void ); /* ctor */
 		~Sistema ( void ); /* dtor */
 
-		/* return current value of 'tm' counter */
-		double get_time ( void );
-
 		/* re-scale time matrix and 'tm' counter */
 		void reset_time ( void );
 
@@ -41,9 +39,16 @@ class Sistema: public Particella {
 		/* speed of center of mass system */
 		void mass_center_speed ( void );
 
+		/* 
+		 * raggio delle sfere
+		 *
+		 * XXX Nel passaggio da 2-D e 3-D i coefficienti e le potenze
+		 * cambiano (a causa del passaggio area -> volume).
+		 */
+//		const double S = (double) 2 * sqrt( (double) E / ( nMax * M_PI ) );
+		const double S = pow( (double) 6 * E / ( nMax * M_PI ), (double) 1 / D );
+
 	private:
-		/* system time, updated at each evolution */
-		double tm = (double) 0;
 		/* time when coordinates where measured last */
 		double t_e = (double) 0;
 
@@ -66,18 +71,6 @@ class Sistema: public Particella {
 		/* update colliding times matrix */
 		void update_crash_times ( double t0 );
 }; /* -----  end of class Sistema  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
- *      Method: get_time
- * Description: return current system time
- * ------------------------------------------------------------------
- */
-inline double
-Sistema::get_time ( void ) {
-	return (double) tm;
-} /* -----  end of method Sistema::get_time  ----- */
 
 /*
  * ------------------------------------------------------------------
