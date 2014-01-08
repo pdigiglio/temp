@@ -32,8 +32,9 @@
 #include "round.h"
 
 /* cycle to termalize system */
-#define TERM	10
-#define	LIFE	100
+#define TERM	20
+#define	LIFE	500
+#define STEP	150
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -49,15 +50,15 @@ main ( void ) {
 	/* take initial time */
 	unsigned int begin = clock();
 
+	/* declare system class */
 	Soft s;
 
+	/* termalization */
 	register unsigned int j;
-
 	for ( unsigned short int k = 0; k < TERM; k ++ ) {
-		for ( j = 0; j < Particella::nMax; j ++ ) {
+		for ( j = 0; j < STEP; j ++ ) {
 			s.evolve();
-			s.set_kT( 1.2 );
-	//		s.set_energy( -100 );
+			s.set_kT( 1.19 );
 		}
 //		s.set_kT( 1.2 );
 	}
@@ -94,14 +95,15 @@ main ( void ) {
 	double press = (double) 0, epress = (double) 0;
 	double pct = (double) 0;
 	for ( unsigned short int k = 0; k < LIFE; k ++ ) {
+
 		/* aggiorno le variabili di controllo */
 		pct = (double) 100 * ( (double) k / LIFE );
 		/* stampo la percentuale */
-		fprintf( stderr, "Step n. %u of %u. Completed %.4g %%\r", k, LIFE, pct );
+		fprintf( stderr, "Step n. %u of %u. Completed %.2f %%\r", k, LIFE, pct );
 		
-		for ( j = 0; j < Particella::nMax; j ++ ) {
+		for ( j = 0; j < STEP; j ++ ) {
 			fprintf( r, "%.16g\n", s.evolve() );
-			fprintf( stdout, "%.16g\t%.16g\n", s.get_K(), s.get_U() );
+			fprintf( stdout, "%g\t%.16g\t%.16g\n", s.get_time(), s.get_K(), s.get_U() );
 		}
 
 		/* speed distribution */
@@ -110,7 +112,11 @@ main ( void ) {
 
 		fprintf( p, "%.16g\n", s.get_pr() );
 
+		/* reset pressure */
 		s.reset_pr();
+
+		/* reset temperature */
+//		s.set_kT( 1.19 );
 	}
 
 	if( fclose(r) == EOF ) { /* close output file */
