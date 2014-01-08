@@ -19,6 +19,12 @@
  * ------------------------------------------------------------------
  */
 Soft::Soft (void) {
+	
+	/* stampo a schermo informazioni (n. particelle, raggio) */
+	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET "] "
+			"Number :: radius of particles (with N = %u) >> %lu :: %.2g sigma\n",
+			(unsigned) N, (unsigned long) Particella::nMax, (double) Soft::L );
+	
 	/* inizializzo posizioni delle particelle */
 	double x[3], y[3];
 
@@ -34,19 +40,19 @@ Soft::Soft (void) {
 
 	for ( unsigned short int i = 0; i < N; i ++ ) {
 		/* calcolo la coordinata x */
-		*x = (double) i / N;
+		*x = (double) Soft::L * i / N;
 		/* coordinata traslata */
-		*y = *x + .5 / N;
+		*y = *x + Soft::L * .5 / N;
 
 		for ( unsigned short int k = 0; k < N; k ++ ) { /* 3D */
 			/* calcolo la coordinata z */
-			*( x + 2 ) = (double) k / N;
-			*( y + 2 ) = *( x + 2 ) + .5 / N;
+			*( x + 2 ) = (double) Soft::L * k / N;
+			*( y + 2 ) = *( x + 2 ) + Soft::L * .5 / N;
 
 			for ( j = 0; j < N; j ++ ) {
 				/* coordinata y */
-				*( x + 1 ) = (double) j / N;
-				*( y + 1 ) = *( x + 1 ) + .5 / N;
+				*( x + 1 ) = (double) Soft::L * j / N;
+				*( y + 1 ) = *( x + 1 ) + Soft::L * .5 / N;
 				
 				/* aggiorno l'indice della particella (dispari) */
 				m = n + 1;
@@ -113,7 +119,7 @@ double
 Soft::evolve ( void ) {
 	/* vector radius connecting particles, modulus, mean modulus */
 	double r_ij[D];
-	register double r, mr = 0., pt;
+	double r, mr = (double) 0, pt = (double) 0;
 	/* temporary variable for force */
 	register double f;
 	/* temporary particle pointers */
@@ -125,7 +131,7 @@ Soft::evolve ( void ) {
 	/* internal energy */
 	register double internal = (double) 0;
 	/* kinetic energy, acceleration */
-	double kinetic = (double) 0, a;
+	double kinetic = (double) 0, a, *pivd = NULL;
 
 	for ( unsigned int i = 0; i < Particella::nMax; i ++ ) {
 		pi = p + i;
@@ -138,8 +144,8 @@ Soft::evolve ( void ) {
 				/* r_ij = r_j - r_i */
 				*( r_ij + d ) = *( (*pj).x + d ) - *( (*pi).x + d );
 				
-				/* rescale distance */
-				*( r_ij + d ) -= (double) round( *( r_ij + d ) );
+				/* rescale distance within the box */
+				*( r_ij + d ) -= (double) Soft::L * round( *( r_ij + d ) / Soft::L );
 			}
 
 			/* take distance between i-th and j-th particle */
@@ -164,17 +170,18 @@ Soft::evolve ( void ) {
 		}
 
 		for ( d = 0; d < D; d ++ ) {
-			/* assign temporary variable */
+			/* assign temporary variables */
 			a = (double) *( (*pi).a + d ) * dt / 2;
+			pivd = (*pi).v + d;
 
 			/* evolve */
-			*( (*pi).v + d ) += a;
+			*pivd += a;
 
 			/* kinetic energy */
-			kinetic += *( (*pi).v + d ) * *( (*pi).v + d );
+			kinetic += *( pivd ) * *( pivd );
 			
-			*( (*pi).x + d ) += *( (*pi).v + d ) * dt + a * dt;
-			*( (*pi).v + d ) += a;
+			*( (*pi).x + d ) += *( pivd ) * dt + a * dt;
+			*pivd += a;
 
 			/* reset acceleration */
 			*( (*pi).a + d ) = (double) 0;
@@ -188,8 +195,11 @@ Soft::evolve ( void ) {
 	pr += pt / kinetic;
 
 	/* assign kinetic and internal energies per particle */
-	K = kinetic / Particella::nMax;
-	U = internal / Particella::nMax;
+	K = (double) kinetic / Particella::nMax;
+	U = (double) internal / Particella::nMax;
+
+	/* update system time */
+	tm += dt;
 
 	return (double) mr / e;
 } /* -----  end of method Soft::evolve  ----- */
@@ -319,16 +329,15 @@ void
 Soft::set_kT ( double kT ) {
 	/* check if new 'kT' is greater than 0 */
 	if ( kT >= (double) 0 ) {
-		double scale = sqrt( D * kT / ( 2 * K ) );
+		double K_new = D * kT / 2;
+		double scale = sqrt( K_new / Particella::K );
 
 		Soft::scale_velocity( scale );
 
-		double K_new = D * kT / 2;
-
 		fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET ": "
 						ANSI_YELLOW "%s" ANSI_RESET
-						"] Kinetic energy per particle shifted from %g to %g.\n",
-						__func__, K, K_new );
+						"] KT shifted from %g to %g.\n",
+						__func__, (double) 2 * Particella::K / D, kT );
 
 		/* reassign kinetic energy */
 		K = K_new;

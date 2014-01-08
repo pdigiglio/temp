@@ -1,4 +1,5 @@
 #include "particella.h"
+#include "rho.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,16 +32,19 @@ class Soft: public Particella {
 		/* set kT rescaling velocities */
 		void set_kT ( double kT );
 		
-		/* return kT (obtained from kinetik energy */
+		/* return kT (obtained from kinetik energy) */
 		double get_KT ( void );
+
+		/* box side */
+		const double L = pow( (double) Particella::nMax / RHO, (double) 1 / D );
+
 	private:
 		/* critic distance */
-		const double r_c = 5 * Particella::S / 2;
+		const double r_c = (double) 5 / 2;
 		/* force shift */
-		const double F_c = Soft::F( r_c );
-
-		/* short-cut for ( Sigma ) ^ 6 */
-		const double S6 = pow( Particella::S, 6 );
+		const double F_c = .039;
+		/* potenzial shift */
+		const double V_c = -.0163;
 
 		/* return force between particles */
 		double F ( double r );
@@ -60,12 +64,16 @@ class Soft: public Particella {
  */
 inline double
 Soft::F ( double r ) {
+	if ( r > r_c )
+		return (double) 0;
+
+
 	/* ( Sigma / r ) ^ 3 */
 	double R = (double) 1 / ( r * r * r );
 	/* ( Sigma / r ) ^ 6 */
-	R *= R * Soft::S6;
+	R *= R;
 
-	return (double) 24 * R * ( 2 * R - 1 ) / r;
+	return (double) 24 * R * ( 2 * R - 1 ) / r + F_c;
 } /* -----  end of method Soft::F  ----- */
 
 /*
@@ -77,12 +85,16 @@ Soft::F ( double r ) {
  */
 inline double
 Soft::V ( double r ) {
-	/* ( Sigma / r ) ^ 3 */
-	double R = (double) 1 / ( r * r * r );
-	/* ( Sigma / r ) ^ 6 */
-	R *= R * Soft::S6;
+	if ( r > r_c )
+		return (double) 0;
 
-	return (double) 4 * R * ( R - 1 );
+
+	/* ( 1 / r ) ^ 3 */
+	double R = (double) 1 / ( r * r * r );
+	/* ( 1 / r ) ^ 6 */
+	R *= R;
+
+	return (double) 4 * R * ( R - 1 ) - V_c - ( r - r_c ) * F_c;
 } /* -----  end of method Soft::V  ----- */
 
 /*
