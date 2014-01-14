@@ -34,12 +34,19 @@ class Particella {
 		virtual double get_KT ( void );
 		/* return current pressure value */
 		double get_pr ( void );
+		/* return square mean radius */
+		double get_R2M ( void );
 
 		/* reset pressure value to 'val' */
 		void reset_pr ( double val = (double) 0 );
+		/* reset R2M value to 'val' */
+		void reset_R2M ( double val = (double) 0 );
 
 		/* print particle coordinates */
 		void print_x ( void );
+		
+		/* save particles coordinates in r */
+		void save_coordinates ( void );
 
 		/* numero massimo di particelle nel volume */
 		const static unsigned long int nMax = (unsigned long) 2 * powl( N, D );
@@ -54,6 +61,10 @@ class Particella {
 			double a[D]; /* accelerazione della particella */
 			double t_last = (double) 0;
 		} p[ nMax ];// = NULL;
+
+		double r[nMax][D] = {};
+		/* mean square radius */
+		double R2M = (double) 0;
 
 		/* for portability */
 //		typedef;
@@ -225,5 +236,29 @@ Particella::distance ( unsigned int i, unsigned int j ) {
 
 	return sqrt( Particella::sp( r ) );
 } /* -----  end of method Particella::distance  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Particella
+ *      Method: get_R2M
+ * Description: return square mean radius
+ * ------------------------------------------------------------------
+ */
+inline double
+Particella::get_R2M ( void ) {
+	return (double) Particella::R2M / Particella::nMax;
+} /* -----  end of method Particella::get_R2M  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Particella
+ *      Method: reset_R2M
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline void
+Particella::reset_R2M ( double val ) {
+	Particella::R2M = (double) val;
+} /* -----  end of method Particella::reset_R2M  ----- */
 
 #endif   /* ----- #ifndef particella_INC  ----- */

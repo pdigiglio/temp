@@ -47,3 +47,23 @@ Particella::print_x ( void ) {
 		ptr ++;
 	}
 } /* -----  end of method Particella::print_x  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Particella
+ *      Method: save_coordinates
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Particella::save_coordinates ( void ) {
+	struct ptcl *ptr;
+
+	register unsigned short d;
+	for ( unsigned int n = 0; n < Particella::nMax; n ++ ) {
+		ptr = p + n;
+		for ( d = 0; d < D; d ++ )
+			*( *( r + n ) + d ) = *( (*ptr).x + d );
+	}
+
+} /* -----  end of method Particella::save_coordinates  ----- */

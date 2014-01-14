@@ -26,8 +26,6 @@ class Sistema: public Particella {
 		/* re-scale time matrix and 'tm' counter */
 		void reset_time ( void );
 
-		void save_coordinates ( void );
-
 		/* evolve system between collisions */
 		double evolve ( void );
 
@@ -59,7 +57,6 @@ class Sistema: public Particella {
 
 		/* collision times matrix */
 		double *ct[nMax];
-		double r[nMax][D] = {};
 
 		/* exchange particle velocity along r_ij axis */
 		void exchange ( /* unsigned int i = i0, unsigned int j = j0 */ );

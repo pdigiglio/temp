@@ -190,26 +190,6 @@ Sistema::next_crash ( void ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Sistema
- *      Method: save_coordinates
- * Description: 
- * ------------------------------------------------------------------
- */
-void
-Sistema::save_coordinates ( void ) {
-	struct ptcl *ptr;
-
-	register unsigned short d;
-	for ( unsigned int n = 0; n < Sistema::nMax; n ++ ) {
-			ptr = p + n;
-			for ( d = 0; d < D; d ++ )
-				*( *( r + n ) + d ) = *( (*ptr).x + d );
-		}
-
-} /* -----  end of method Sistema::save_coordinates  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Sistema
  *      Method: evolve
  * Description: 
  * ------------------------------------------------------------------
