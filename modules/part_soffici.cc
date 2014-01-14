@@ -117,13 +117,13 @@ Soft::Soft (void) {
  */
 double
 Soft::evolve ( void ) {
-	/* vector radius connecting particles, modulus, mean modulus */
-	double r_ij[D];
-	double r, mr = (double) 0, pt = (double) 0;
-	/* temporary variable for force */
-	register double f;
+	/* vector radius connecting particles, modulus, mean modulus, pressure (temporary) */
+	double r_ij[D], rtemp, rmod, rmean = (double) 0;
+	/* temporary variable for force, pressure (temporary) */
+	double f, pt = (double) 0;
 	/* temporary particle pointers */
 	struct ptcl *pi, *pj;
+	double *ri;
 
 	/* run over all particles */
 	register unsigned int j;
@@ -135,6 +135,7 @@ Soft::evolve ( void ) {
 
 	for ( unsigned int i = 0; i < Particella::nMax; i ++ ) {
 		pi = p + i;
+		ri = *( r + i );
 
 		for ( j = i + 1; j < Particella::nMax; j ++ ) {
 			pj = p + j;
@@ -149,18 +150,18 @@ Soft::evolve ( void ) {
 			}
 
 			/* take distance between i-th and j-th particle */
-			r = sqrt( Particella::sp( r_ij ) );
-			mr += r;
+			rmod = sqrt( Particella::sp( r_ij ) );
+			rmean += rmod;
 
 			/* save internal energy */
-			internal += Soft::V( r );
+			internal += Soft::V( rmod );
 
 			/* assign force */
-			f = Soft::F( r );
+			f = Soft::F( rmod );
 			/* update temporary pressure */
-			pt -= f * r;
+			pt += f * rmod;
 			/* scale force */
-			f /= r;
+			f /= rmod;
 			
 			/* assign accelerations */
 			for ( d = 0; d < D; d ++ ) {
@@ -180,7 +181,14 @@ Soft::evolve ( void ) {
 			/* kinetic energy */
 			kinetic += *( pivd ) * *( pivd );
 			
+			/* move particle */
 			*( (*pi).x + d ) += *( pivd ) * dt + a * dt;
+
+			/* evaluate mean square modulus */
+			rtemp = *( (*pi).x + d ) - *( ri + d );
+			rtemp -= (double) Soft::L * round( rtemp / Soft::L );
+			R2M += rtemp * rtemp;
+
 			*pivd += a;
 
 			/* reset acceleration */
@@ -188,20 +196,17 @@ Soft::evolve ( void ) {
 		}
 	}
 
-	/* scale kinetic energy */
-	kinetic /= (double) 2;
-
 	/* update pressure */
 	pr += pt / kinetic;
 
 	/* assign kinetic and internal energies per particle */
-	K = (double) kinetic / Particella::nMax;
+	K = (double) kinetic / ( 2 * Particella::nMax );
 	U = (double) internal / Particella::nMax;
 
 	/* update system time */
 	tm += dt;
 
-	return (double) mr / e;
+	return (double) rmean / e;
 } /* -----  end of method Soft::evolve  ----- */
 
 /*
