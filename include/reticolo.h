@@ -5,9 +5,9 @@
 #include <math.h>
 
 /* lattice side */
-#define	L	8
+#define	L	150
 /* temperature */
-#define B	.5
+#define B	.3
 
 /*
  * ==================================================================
@@ -18,7 +18,6 @@
 class Reticolo {
 	public:
 		Reticolo (void); /* ctor */
-//		Reticolo (const Reticolo &other); /* copy ctor */
 		~Reticolo (void); /* dtor */
 
 		double get_E ( void );
@@ -28,22 +27,22 @@ class Reticolo {
 		void Sweep ( void );
 
 		void print_lattice ( void );
+
 		/* return energy of site (i,j) */
 		short int single_E ( unsigned int i, unsigned int j );
-		
-		/* assignment operator */
-//		Reticolo& operator = (const Reticolo &other);
+		/* evaluate lattice energy */
+		long int energy ( void );
 
+		/* useful constants (not to be evaluated at every cycle) */
+		const long double EB = (long double) 1 - expl( -B );
+		static const long int L2 = L * L;
+		
 	protected:
 		/* short-cut to extend do Potts model */
-		typedef bool Sito;
+		typedef short int Sito;
+		Sito x[L][L];
 
-		/* useful constant */
-		static const unsigned int L2 = L * L;
-		const long double EB = (long double) 1 - expl( -B );
-
-		Sito x[L][L] = {};
-
+		/* controls if a site has been already checked */
 		bool ckd[L][L] = {};
 		bool ckd_status = (bool) 0;
 		
@@ -55,89 +54,51 @@ class Reticolo {
 			{ -1, 0 }
 		};
 
+		/* cluster sites stack */
 		const unsigned int head = 0;
 		unsigned int tail = 0;
-		unsigned int stack[L2][2];
+		/* stack contains at most L * L elements */
+		unsigned short int stack[L2][2];
 
 		/* number of sweeps */
 		unsigned int t = 0;
 
 		/* energy (initially 4L^2) */
-		double E = (double) - 4 * L2;
+		long int E;
 
 		/* current magnetization */
-		double M;
-		/* mean magnetization */
-		double m[2] = {};
-
-//		unsigned short int t[16] = {
-//			1, 2, 4, 8,
-//			16, 32, 64, 128,
-//			256, 512, 1024, 2048,
-//			4096, 8192, 16384, 32768
-//		};
-
-
+		long int M;
 
 		/* return spin */
 //		bool spin ( unsigned int i, unsigned int j );
 		
 		void cluster ( unsigned int i, unsigned int j );
-	private:
 }; /* -----  end of class Reticolo  ----- */
 
 /*
  * ------------------------------------------------------------------
  *       Class: Reticolo
  *      Method: get_E
- * Description: 
+ * Description: get energy (divide by L2 to have density!)
  * ------------------------------------------------------------------
  */
 inline double
 Reticolo::get_E ( void ) {
-	return (double) E;
+	return (double) Reticolo::E;
 } /* -----  end of method Reticolo::get_E  ----- */
 
 /*
  * ------------------------------------------------------------------
  *       Class: Reticolo
  *      Method: get_M
- * Description: 
+ * Description: get magnetization (to be normalized by L2)
  * ------------------------------------------------------------------
  */
 inline double
 Reticolo::get_M ( void ) {
 	/* normalize magnetization (divide by volume) */
-	return (double) 2 * M / L2 - 1;
+	return (double) Reticolo::M;
 } /* -----  end of method Reticolo::get_M  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Reticolo
- *      Method: single_E
- * Description: TODO rendere elegante e efficiente!
- * ------------------------------------------------------------------
- */
-inline short int
-Reticolo::single_E ( unsigned int i, unsigned int j ) {
-
-	/* energy and counter */
-	short int temp = 0, f;
-	Sito *ptr = *( x + i );
-
-	/* sum of spins { 0,1 } */
-	for ( f = -1; f < 2; f += 2 ) {
-		temp += *( ptr + ( L + j + f ) / L );
-		temp += *( *( x + ( L + i + f ) / L ) + j );
-	}
-
-	/* spins { 0,1 } -> { -1, 1 } */
-	temp *= 2;
-	temp -= 4;
-
-	temp *= 2 * *( *( x + i ) + j ) - 1;
-	return - temp;
-} /* -----  end of method Reticolo::single_E  ----- */
 
 /*
  * ------------------------------------------------------------------
