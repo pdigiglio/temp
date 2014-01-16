@@ -3,7 +3,7 @@
 #
 #
 # Main file to compile
-MAIN	= ising #lennard_jones # free_part
+MAIN	= ising #lennard_jones #free_part
 # Modules to create
 COMMON	= round info_time
 
@@ -21,8 +21,8 @@ clean:
 
 # Directory for modules and headers (every header is supposed to be
 # named like the corresponding module and vice versa)
-MDIR	= ./modules
-IDIR	= ./include
+MDIR	= ../modules
+IDIR	= ../include
 
 # Modules direcory
 VPATH	= $(MDIR):$(MDIR)/common

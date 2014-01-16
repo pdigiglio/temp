@@ -32,8 +32,8 @@
 #include "round.h"
 
 /* cycle to termalize system */
-#define TERM	20
-#define	LIFE	500
+#define TERM	25
+#define	LIFE	1500
 #define STEP	150
 
 /* 
@@ -55,15 +55,18 @@ main ( void ) {
 
 	/* termalization */
 	register unsigned int j;
-	for ( unsigned short int k = 0; k < TERM; k ++ ) {
+	for ( unsigned short int k = 0; k < TERM; k ++ )
 		for ( j = 0; j < STEP; j ++ ) {
 			s.evolve();
-			s.set_kT( 1.19 );
+			s.set_energy( -2.98 );
 		}
-//		s.set_kT( 1.2 );
-	}
 
+	/* reset variables */
 	s.reset_pr();
+	s.reset_R2M();
+	
+	/* save coordinates after termalization */
+	s.save_coordinates();
 	
 	char r_file_name[] = "radius.dat"; /* output-file name */
 	FILE *r = fopen( r_file_name, "w" );
@@ -92,8 +95,10 @@ main ( void ) {
 		exit (EXIT_FAILURE);
 	}
 
-	double press = (double) 0, epress = (double) 0;
 	double pct = (double) 0;
+
+	fprintf( stdout, "#time\tkinetic\tinternal\tkt\n" );
+	double K = 0., Ke = 0., u = 0., ue = 0., kt = 0., kte = 0., tmp = 0.;
 	for ( unsigned short int k = 0; k < LIFE; k ++ ) {
 
 		/* aggiorno le variabili di controllo */
@@ -102,23 +107,81 @@ main ( void ) {
 		fprintf( stderr, "Step n. %u of %u. Completed %.2f %%\r", k, LIFE, pct );
 		
 		for ( j = 0; j < STEP; j ++ ) {
-			fprintf( r, "%.16g\n", s.evolve() );
-			fprintf( stdout, "%g\t%.16g\t%.16g\n", s.get_time(), s.get_K(), s.get_U() );
+			s.evolve();
+
+			/* get R2M */
+//			fprintf( r, "%g\t%.16g\n", ( k * LIFE + j ) * dt, (double) s.get_R2M() / ( s.L * s.L ) );
+			/* reset R2M */
+//			s.reset_R2M();
+
+			fprintf( stdout, "%g\t%.16g\t%.16g\t%.16g\n", s.get_time(), s.get_K(), s.get_U(), s.get_KT() );
+			
+			tmp = s.get_K();
+			K += tmp;
+			Ke += tmp * tmp;
+
+			tmp = s.get_U();
+			u += tmp;
+			ue += tmp * tmp;
+
+			tmp = s.get_KT();
+			kt += tmp;
+			kte += tmp * tmp;
 		}
 
 		/* speed distribution */
-		for ( j = 0; j < Particella::nMax; j ++ )
-			fprintf( speed, "%.16g\n", s.get_velocity( j ) );
+//		for ( j = 0; j < Particella::nMax; j ++ )
+//			fprintf( speed, "%.16g\n", s.get_velocity( j ) );
 
-		fprintf( p, "%.16g\n", s.get_pr() );
-
+		/* get pressure */
+//		fprintf( p, "%.16g\n", (double) s.get_pr() / STEP );
 		/* reset pressure */
-		s.reset_pr();
+//		s.reset_pr();
+
 
 		/* reset temperature */
-//		s.set_kT( 1.19 );
+//		s.set_kT( 1.22 );
 	}
 
+	/* output-file name */
+	char tl_file_name[] = "limite_termodinamico.dat";
+	FILE *tl = fopen( tl_file_name, "a" );
+
+	if ( tl == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				tl_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	fprintf( tl, "%lu\t", Particella::nMax );
+	
+	K /= (double) LIFE * STEP;
+	Ke /= (double) LIFE * STEP;
+	Ke -= (double) K * K;
+	Ke /= sqrt((double) LIFE * STEP );
+	round( K, Ke, tl );
+	fprintf( tl, "\t" );
+
+	u /= (double) LIFE * STEP;
+	ue /= (double) LIFE * STEP;
+	ue -= (double) u * u;
+	ue /= sqrt((double) LIFE * STEP );
+	round( u, ue, tl );
+	fprintf( tl, "\t" );
+
+	kt /= (double) LIFE * STEP;
+	kte /= (double) LIFE * STEP;
+	kte -= (double) kt * kt;
+	kte /= sqrt((double) LIFE * STEP );
+	round( kt, kte, tl );
+	fprintf( tl, "\n" );
+	
+	if( fclose(tl) == EOF ) { /* close output file */
+		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				tl_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+	
 	if( fclose(r) == EOF ) { /* close output file */
 		fprintf ( stderr, "couldn't close file '%s'; %s\n",
 				r_file_name, strerror(errno) );
