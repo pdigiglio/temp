@@ -31,12 +31,13 @@
  * ------------------------------------------------------------------
  */
 Reticolo::Reticolo (void) {
+	/* assign spins */
 	Sito *s = NULL;
 	register unsigned int j;
 	for ( unsigned int i = 0; i < L; i ++ ) {
 		s = *( x + i );
 		for ( j = 0; j < L; j ++ )
-			*( s + j ) = (bool) ( rand() % 2 );
+			*( s + j ) = 2 * ( rand() % 2 ) - 1;
 	}
 
 	/* assign energy */
@@ -57,7 +58,7 @@ Reticolo::~Reticolo (void) {
  * ------------------------------------------------------------------
  *       Class: Reticolo
  *      Method: single_E
- * Description: 
+ * Description: evaluate single-spin energy
  * ------------------------------------------------------------------
  */
 short int
@@ -68,6 +69,7 @@ Reticolo::single_E ( unsigned int i, unsigned int j ) {
 	const short int *aptr = NULL;
 	unsigned int n, m;
 
+	/* sweep over nearest neighbours */
 	for ( unsigned short int a = 0; a < 4; a ++ ) {	
 		/* assign (displacement) temporary pointer */
 		aptr = *( s + a );
@@ -95,18 +97,18 @@ Reticolo::single_E ( unsigned int i, unsigned int j ) {
  */
 long int
 Reticolo::energy ( void ) {
+	/* energy temporary variable */
 	long int ene = 0;
 
 	short int i1;
 	register short int j;
+	/* cycle over even sites only */
 	for ( unsigned short int i = 0; i < L; i += 2 ) {
 		i1 = i + 1;
 		for ( j = 0; j < L; j ++ ) {
-
 			ene += Reticolo::single_E( i, j );
 			/* translater lattice */
 			ene += Reticolo::single_E( i1, ++ j );
-
 		}
 	}
 
@@ -134,15 +136,15 @@ Reticolo::sweep ( void ) {
 		s = *( x + i );
 
 		for ( j = 0; j < L; j ++ ) {
-			/* energy difference */
-			delta = - 2 * Reticolo::single_E( i, j );
+			/* (-) energy difference */
+			delta = 2 * Reticolo::single_E( i, j );
 
 			/* (maybe) update */
-			if ( (long double) rand() / RAND_MAX < expl( (long double) - B * delta ) ) {
+			if ( (long double) rand() / RAND_MAX < expl( (long double) B * delta ) ) {
 				/* reverse spin */
 				*( s + j ) = - *( s + j );
 				/* update energy */
-				E += delta;
+//				E -= delta;
 			}
 
 			/* update magnetization */
@@ -150,7 +152,7 @@ Reticolo::sweep ( void ) {
 		}
 	}
 
-//	E = energy();
+	E = energy();
 } /* -----  end of method Reticolo::sweep  ----- */
 
 /*

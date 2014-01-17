@@ -5,9 +5,9 @@
 #include <math.h>
 
 /* lattice side */
-#define	L	150
+#define	L	500
 /* temperature */
-#define B	.3
+#define B	1
 
 /*
  * ==================================================================
@@ -23,7 +23,9 @@ class Reticolo {
 		double get_E ( void );
 		double get_M ( void );
 
+		/* metropolis system update */
 		void sweep ( void );
+		/* Swendsen-Wang algorithm */
 		void Sweep ( void );
 
 		void print_lattice ( void );
@@ -63,9 +65,8 @@ class Reticolo {
 		/* number of sweeps */
 		unsigned int t = 0;
 
-		/* energy (initially 4L^2) */
+		/* energy initialized in ctor */
 		long int E;
-
 		/* current magnetization */
 		long int M;
 
