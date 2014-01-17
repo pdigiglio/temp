@@ -54,7 +54,16 @@ main ( void ) {
 	double e = (double) 0, ee = (double) 0;
 	double tmp;
 
+	float pct = (float) 0;
 	for ( unsigned int j = 0; j < LIFE; j ++ ) {
+		/*-------------------------------------------------------------------
+		 *  PROGRESS BAR
+		 *-----------------------------------------------------------------*/
+		pct = (double) 100 * ( (double) j / LIFE );
+		/* stampo la percentuale */
+		fprintf( stderr, "Step n. %u of %u. Completed %.2f %%\r", j, LIFE, pct );
+
+
 //		printf( "%g\n", (double) r.get_M() );
 //		fprintf( stderr, ANSI_RED "Sweep %u\n" ANSI_RESET, j );
 		tmp = (double) r.get_E() / r.L2;
