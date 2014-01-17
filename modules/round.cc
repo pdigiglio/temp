@@ -39,7 +39,7 @@ round ( long double val, long double err, FILE *stream ) {
 
 //	printf( "%hd\n", exp);
 
-	fprintf( stream, "%Lg\t%Lg",
+	fprintf( stream, "%.16Lg\t%.16Lg",
 				roundl( val / powl(10., exp) ) * powl(10., exp),
 				roundl( tmp ) * powl(10., exp)
 			);
