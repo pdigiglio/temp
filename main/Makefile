@@ -16,7 +16,7 @@ all: $(MAIN)
 # Clean directory from dependences, objects and executable
 clean:
 #	@echo -e "rm `tput bold``tput setaf 6`--recursive --force --verbose`tput sgr0` *.d *.o .tmp $(MAIN)"
-	@-rm --recursive --force --verbose *.o *.d free_part lennard_jones analisi
+	@-rm --recursive --force --verbose *.o *.d free_part lennard_jones analisi ising
 .PHONY: all clean
 
 # Directory for modules and headers (every header is supposed to be
