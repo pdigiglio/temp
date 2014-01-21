@@ -106,7 +106,7 @@ $(MAIN): %: $(OBJS) Makefile
 		"$(CXXFLAGS)$(INCPATH) $(LDFLAGS)\n"
 	@$(CXX) $(OBJS) -o $@ $(CXXFLAGS) $(LDFLAGS)
 
-analisi: %: analisi.o round.o
+analisi: analisi.o round.o
 	$(CXX) $? -o $@ $(CXXFLAGS) $(LDFLAGS)
 
 
