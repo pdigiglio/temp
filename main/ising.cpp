@@ -30,7 +30,7 @@
 #include "round.h"
 
 #define LIFE 1000
-#define TERM 200
+#define TERM 250
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -40,7 +40,7 @@
  */
 int
 main ( void ) {
-	srand( time( NULL ) );
+//	srand( time( NULL ) );
 
 	unsigned int start = clock();
 
@@ -48,11 +48,29 @@ main ( void ) {
 	Reticolo r;
 
 	/* termalyze system */
-	for ( unsigned short int j = 0; j < TERM; j ++ )
-		r.sweep();
+//	for ( unsigned short int j = 0; j < TERM; j ++ )
+//		r.sweep();
 
 	double e = (double) 0, ee = (double) 0;
 	double tmp;
+
+	/* output-file name */
+	char energy_file_name[] = "energia.dat";
+	FILE *energy = fopen( energy_file_name, "w" );
+	if ( energy == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				energy_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	/* output-file name */
+	char mag_file_name[] = "magnetizzazione.dat";
+	FILE *mag = fopen( mag_file_name, "w" );
+	if ( mag == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				mag_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
 
 	float pct = (float) 0;
 	for ( unsigned int j = 0; j < LIFE; j ++ ) {
@@ -63,17 +81,27 @@ main ( void ) {
 		/* stampo la percentuale */
 		fprintf( stderr, "Step n. %u of %u. Completed %.2f %%\r", j, LIFE, pct );
 
-
-//		printf( "%g\n", (double) r.get_M() );
+		fprintf( mag, "%g\n", (double) r.get_M() / r.L2 );
 //		fprintf( stderr, ANSI_RED "Sweep %u\n" ANSI_RESET, j );
 		tmp = (double) r.get_E() / r.L2;
-//		printf( "%g\n", tmp );
-		
+		fprintf( energy, "%g\n", tmp );
 		
 		r.sweep();
 
 		e += tmp;
 		ee += tmp * tmp;
+	}
+
+	if( fclose(energy) == EOF ) { /* close output file */
+		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				energy_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	if( fclose(mag) == EOF ) { /* close output file */
+		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+				mag_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
 	}
 
 	e /= (double) LIFE;
@@ -90,7 +118,7 @@ main ( void ) {
 		exit (EXIT_FAILURE);
 	}
 	
-	fprintf( ene, "%g\t", B );
+	fprintf( ene, "%g\t", (double) B );
 	round( e, sqrt( ee / LIFE), ene );
 	fprintf( ene, "\n" );
 

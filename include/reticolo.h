@@ -2,12 +2,18 @@
 #ifndef  reticolo_INC
 #define  reticolo_INC
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
+#include "beta.h"
 
 /* lattice side */
 #define	L	500
-/* temperature */
-#define B	1
+/* dimension */
+#define D 2
+
+/* short-cut to extend do Potts model */
+typedef short int spin;
 
 /*
  * ==================================================================
@@ -40,16 +46,23 @@ class Reticolo {
 		static const long int L2 = L * L;
 		
 	protected:
-		/* short-cut to extend do Potts model */
-		typedef short int Sito;
-		Sito x[L][L];
+		struct sito {
+			/* nearest neighbours */
+			unsigned short int nn[2 * D][D];
+			/* spin value */
+			spin s;
+		} x[L][L];
+
+		typedef struct sito Sito;
+//		typedef short int Sito;
+//		Sito x[L][L];
 
 		/* controls if a site has been already checked */
 		bool ckd[L][L] = {};
 		bool ckd_status = (bool) 0;
 		
 		/* auxiliary array to check nearest neighbours */
-		const signed short int s[4][2] = {
+		const signed short int s[2 * D][D] = {
 			{ 0, 1 },
 			{ 1, 0 },
 			{ 0, -1 },
@@ -60,7 +73,7 @@ class Reticolo {
 		const unsigned int head = 0;
 		unsigned int tail = 0;
 		/* stack contains at most L * L elements */
-		unsigned short int stack[L2][2];
+		unsigned short int stack[L2][D];
 
 		/* number of sweeps */
 		unsigned int t = 0;
@@ -69,6 +82,9 @@ class Reticolo {
 		long int E;
 		/* current magnetization */
 		long int M;
+
+		/* returns spin in *pos */
+		spin S ( const unsigned short int p[] );
 
 		/* return spin */
 //		bool spin ( unsigned int i, unsigned int j );
@@ -100,6 +116,18 @@ Reticolo::get_M ( void ) {
 	/* normalize magnetization (divide by volume) */
 	return (double) Reticolo::M;
 } /* -----  end of method Reticolo::get_M  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: S
+ * Description: return spin of site in ( p[0], p[1] ).
+ * ------------------------------------------------------------------
+ */
+inline spin
+Reticolo::S ( const unsigned short int p[] ) {
+	return (*( *( x + *p ) + *( ++ p ) )).s;
+} /* -----  end of method Reticolo::S  ----- */
 
 /*
  * ------------------------------------------------------------------
