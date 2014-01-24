@@ -32,13 +32,12 @@
 
 #include <errno.h>
 #include <string.h>
-/* to get file basenames */
-//#include <libgen.h>
 
 #include "round.h"
 
-/* numero di colonne nel file in input */
-#define C	3
+/* auto-correlator domain */
+#define ACD	30
+#define BIN	1
 
 int
 main ( int argc, char *argv[] ) {
@@ -74,15 +73,15 @@ main ( int argc, char *argv[] ) {
 	 * -------------------------------------------------------------*/
 
 	/* valori delle misure */
-	long double **f = NULL, *ptr = NULL;
+	long double *f = NULL, *fptr = NULL;
 	long double temp;
 
 	/* media ed errore (inizializzate a zero) */
-	long double mean[C] = {}, err[C] =  {};
+	long double mean = (long double) 0;
+	long double err =  (long double) 0;
 
+	/* binning output file */
 	char out_file_name[] = "analisi.dat";
-//	sprintf( out_file_name, "%s_%u.dat", basename( argv[1] ), ord );
-	
 	FILE *out_stream = fopen( out_file_name, "w" );
 	if ( out_stream == NULL ) {
 		fprintf ( stderr, "couldn't open file '%s'; %s\n",
@@ -92,53 +91,36 @@ main ( int argc, char *argv[] ) {
 
 	/* acquisisco i valori e calcolo la media */
 	unsigned int l, i;
-	for ( l = 0; !( feof(pFile) ); l ++ ) {	
+	for ( l = 0; !( feof(pFile) ); l ++ ) {
 		/* alloco la memoria per i valori in input */
-		f = (long double **) realloc( f, (l + 1) * sizeof(long double *) );
+		f = (long double *) realloc( f, (l + 1) * sizeof(long double) );
 		if ( f == NULL ) {
 			fprintf ( stderr, "\ndynamic memory reallocation failed\n" );
 			exit (EXIT_FAILURE);
 		}
 
-		*( f + l ) = (long double *) malloc( C * sizeof(long double) );
-		if ( *( f + l ) == NULL ) {
-			fprintf ( stderr, "\ndynamic memory allocation failed\n" );
-			exit (EXIT_FAILURE);
-		}
-	
-		/* assign temporary pointer */
-		ptr = *( f + l );
-		
-		/* azzero i valori di '**f' */
-		for ( unsigned short int j = 0; j < C; j ++ )
-			*( ptr + j ) = (long double) 0;
+		/* assegno puntatore temporaneo */
+		fptr = f + l;
 
-		/* calcolo i cluster */
+		/* azzero i valori */
+		*fptr = (long double) 0;
+
+		/* acquisisco i dati */
 		for ( i = 0; i < ord && !( feof(pFile) ); i ++ ) {
-			signed short int j;
-
-			/* acquisisco prime colonne */
-			for ( j = 0; j < C - 1; j ++ ) {
-				fscanf(pFile, "%Lf, ", &temp);
-				*( ptr + j ) += temp;
-			}
-
-			/* ultima colonna */
-			fscanf(pFile, "%Lf\n", &temp);
-			*( ptr + j ) += temp;
+			fscanf(pFile, "%Lf\n, ", &temp);
+			*fptr += temp;
 		}
 		
 //		fprintf( out_stream, "%u\t", l );
-		/* normalizzo i cluster ed aggiorno le medie */
-		for ( unsigned short int j = 0; j < C; j ++ ) {
-			*( ptr + j ) = (long double) *( ptr + j ) / i;
-
-			fprintf( out_stream, "%LG\t", *( ptr + j ) );
+		/* normalizzo i cluster */
+		*fptr /= (long double) i;
+		fprintf( out_stream, "%LG\n", *fptr );
 			
-			*( mean + j ) += *( ptr + j );
-			*( err + j ) += *( ptr + j ) * *( ptr + j );
-		}
-		fprintf(out_stream, "\n" );
+		/* aggiorno le medie */
+		temp = *fptr;
+
+		mean += temp;
+		err += temp * temp;
 	}
 
 	/* chiudo il file di input */
@@ -155,30 +137,125 @@ main ( int argc, char *argv[] ) {
 	}
 
 	FILE *stream = stdout;
-//	fprintf( stream, "%u\t", ord);
+	fprintf( stream, "#bin-size\t" );
 
 	/* head */
-	for ( unsigned short int j = 0; j < C; j ++ )
-		fprintf( stream, "#mean\tvariance\tmean\tsdom\t" );
+	fprintf( stream, "#ord\nmean\tvariance\tmean\tsdom\n" );
 
+	/* bin size */
+	fprintf( stream, "%u\t", ord);
+
+	/* normalizzo la media */
+	mean /= (long double) l;
+
+	/* calcolo la varianza */
+	err /= (long double) l;
+	err -= mean * mean;
+	err = (long double) sqrtl( err );
+
+	/* stampo nel file media e varianza */
+	round( mean, err, stream );
+	fprintf( stream, "\t" );
+
+	/* stampo nel file media e sdom */
+	round( mean, err / sqrtl( l ), stream );
 	fprintf( stream, "\n" );
 	
-	for ( unsigned short int j = 0; j < C; j ++ ) {
-		/* normalizzo la media */
-		*( mean + j ) = (long double) *( mean + j ) / l;
 
-		/* calcolo la varianza */
-		*( err + j ) = *( err + j ) / l;
-		*( err + j ) = (long double) sqrtl( *( err + j ) - pow( *( mean + j ), (long double) 2) );
+	/*-------------------------------------------------------------------
+	 *  AUTOCORRELATORI
+	 *-----------------------------------------------------------------*/
 
-		/* stampo nel file media e varianza */
-		round( *( mean + j), *( err + j ), stream );
-		fprintf( stream, "\t" );
-		/* stampo nel file media e sdom */
-		round( *( mean + j), *( err + j ) / sqrtl( l ), stream );
-		fprintf( stream, "\t" );
+	long double a_co[ACD], a_co_err[ACD];
+	register long double ac, mp;
+	long double *aptr = NULL, *eptr = NULL;
+
+	/* coefficiente di normalizzazione */
+	long double norm = (long double) 1;
+
+	unsigned int step = (unsigned) l / BIN;
+	unsigned int start, stop;
+
+	/* apro un file di output (lo creo) */
+	char oFile_name[] = "ac.dat"; /* output-file name */
+	FILE *oFile = fopen( oFile_name , "w" );
+
+	if ( oFile == NULL ) {
+		fprintf ( stderr, " > Impossibile aprire il file '%s'; %s\n",
+				oFile_name, strerror(errno) );
+		exit (EXIT_FAILURE);
 	}
-	fprintf( stream, "\n" );
+
+	/* calcolo gli autocorrelatori */
+	for ( unsigned short int t = 0; t < ACD; t ++ ) {
+		fprintf( stderr, "t: %u\n", t );
+		/* assegno i puntatori temporanei */
+		aptr = a_co + t;
+		eptr = a_co_err + t;
+		fprintf( stderr, "assign\n" );
+
+		/* azzero media e errore */
+		*aptr = (long double) 0;
+		*eptr = (long double) 0;
+
+		/* stampo la coordinata temporale */
+		fprintf( oFile, "%hu\t", t );
+		
+		for ( unsigned short int j = 0; j < BIN; j ++ ) {
+			fprintf( stderr, "j: %u\n", j );
+			/* azzero auto-correlatore */
+			ac = (long double) 0;
+			/* azzero media parziale */
+			mp = (long double) 0;
+
+			start = j * step;
+			stop = ( j + 1 ) * step;
+
+			/* calcolo la media parziale */
+			unsigned int s;
+			for ( s = start; s < stop; s ++ )
+				mp += *( f + s );
+
+			fprintf( stdout, "media: %Lg\n", mp );
+
+			/* normalizzo */
+			mp /= (long double) step;
+
+			for ( s = start; s < stop - t; s ++ )
+				ac += *( f + s ) * *( f + s + t );
+
+
+			/* normalizzo */
+			ac /= (long double) ( s - start );
+			fprintf( stdout, "auto: %Lg div: %d \n", ac, (int) ( s - start ) );
+			
+			ac -= mp * mp;
+
+			/* aggiorno l'autocorrelatore */
+			*aptr += ac;
+			*eptr += ac * ac;
+		}
+
+		/* normalizzo l'autocorrelatore */
+		*aptr /= (long double) BIN;
+		*eptr /= (long double) BIN;
+		*eptr -= *aptr * *aptr;
+		*eptr /= (long double) ( BIN - 1 );
+
+		/* salvo il primo valore per normalizzare gli altri */
+		if ( t == 0 )
+			norm = *aptr;
+		
+		/* stampo i valori normalizzati */
+		fprintf( oFile, "%Lg\t%Lg\n", *aptr / norm, sqrtl( *eptr ) / norm );
+	}
+
+	/* chiudo il file di output */
+	if( fclose(oFile) == EOF ) {
+		fprintf ( stderr, " > Impossibile chiudere '%s'; %s\n",
+				oFile_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
 
 	exit( EXIT_SUCCESS );
 }				/* ----------  end of function main  ---------- */
