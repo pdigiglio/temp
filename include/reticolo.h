@@ -8,7 +8,7 @@
 #include "beta.h"
 
 /* lattice side */
-#define	L	500
+#define	L	100
 /* dimension */
 #define D 2
 
@@ -27,22 +27,29 @@ class Reticolo {
 		~Reticolo (void); /* dtor */
 
 		double get_E ( void );
-		double get_M ( void );
+		double get_M2 ( void );
+		double get_Mm ( void );
+		double get_Ms ( void );
 
 		/* metropolis system update */
 		void sweep ( void );
 		/* Swendsen-Wang algorithm */
 		void Sweep ( void );
+		/* evaluate correlator */
+		void correlator ( void );
 
 		void print_lattice ( void );
+		void print_correlator ( FILE *stream = stdout );
 
 		/* return energy of site (i,j) */
 		short int single_E ( unsigned int i, unsigned int j );
 		/* evaluate lattice energy */
 		long int energy ( void );
+		/* evaluate magnetization running all over lattice */
+		long int magnetization ( void );
 
 		/* useful constants (not to be evaluated at every cycle) */
-		const long double EB = (long double) 1 - expl( -B );
+		const long double EB = (long double) 1 - expl( (long double) - 2 * B );
 		static const long int L2 = L * L;
 		
 	protected:
@@ -54,12 +61,13 @@ class Reticolo {
 		} x[L][L];
 
 		typedef struct sito Sito;
-//		typedef short int Sito;
-//		Sito x[L][L];
 
 		/* controls if a site has been already checked */
 		bool ckd[L][L] = {};
 		bool ckd_status = (bool) 0;
+
+		/* correlator */
+		double corr[L] = {};
 		
 		/* auxiliary array to check nearest neighbours */
 		const signed short int s[2 * D][D] = {
@@ -81,7 +89,11 @@ class Reticolo {
 		/* energy initialized in ctor */
 		long int E;
 		/* current magnetization */
-		long int M;
+		long unsigned int M2;
+
+		/* magnetizations (max cluster size, random, sweep) */
+		unsigned long int Mm;
+		long int Mr, Ms;
 
 		/* returns spin in *pos */
 		spin S ( const unsigned short int p[] );
@@ -89,7 +101,7 @@ class Reticolo {
 		/* return spin */
 //		bool spin ( unsigned int i, unsigned int j );
 		
-		void cluster ( unsigned int i, unsigned int j );
+		unsigned long int cluster ( unsigned int i, unsigned int j );
 }; /* -----  end of class Reticolo  ----- */
 
 /*
@@ -107,15 +119,39 @@ Reticolo::get_E ( void ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Reticolo
- *      Method: get_M
- * Description: get magnetization (to be normalized by L2)
+ *      Method: get_M2
+ * Description: get susceptivity (to be normalized by L2)
  * ------------------------------------------------------------------
  */
 inline double
-Reticolo::get_M ( void ) {
+Reticolo::get_M2 ( void ) {
 	/* normalize magnetization (divide by volume) */
-	return (double) Reticolo::M;
-} /* -----  end of method Reticolo::get_M  ----- */
+	return (double) Reticolo::M2;
+} /* -----  end of method Reticolo::get_M2  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: get_Mm
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline double
+Reticolo::get_Mm ( void ) {
+	return (double) Mm;
+} /* -----  end of method Reticolo::get_Mm  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: get_Ms
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline double
+Reticolo::get_Ms ( void ) {
+	return (double) Ms;
+} /* -----  end of method Reticolo::get_Ms  ----- */
 
 /*
  * ------------------------------------------------------------------

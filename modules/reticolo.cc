@@ -144,7 +144,7 @@ Reticolo::sweep ( void ) {
 	/* energy difference */
 	short int delta;
 	/* reset magnetization */
-	M = 0;
+	Ms = 0;
 
 	register Sito *xptr = NULL;
 	register unsigned short int j;
@@ -161,7 +161,8 @@ Reticolo::sweep ( void ) {
 				( *xptr ).s = - ( *xptr ).s;
 
 			/* update magnetization */
-			M += ( *xptr ).s;
+			Ms += ( *xptr ).s;
+
 			/* update (column) Sito index */
 			xptr ++;
 		}
@@ -177,142 +178,272 @@ Reticolo::sweep ( void ) {
  * Description: 
  * ------------------------------------------------------------------
  */
-//void
-//Reticolo::Sweep ( void ) {
-//	/* ckd temporary pointer */
-//	bool *c = NULL;
-//
-//	register unsigned short int j;
-//	for ( unsigned short int i = 0; i < L; i ++ ) {
-//		c = *( ckd + i );
-//
-//		for ( j = 0; j < L; j ++ ) {
-//			/* if spin had not been visited yet */
-//			if ( *( c + j ) == ckd_status )
-//				Reticolo::cluster( i, j );
-//		}
-//	}
-//
-//	/* auxiliary variable to avoid resetting ckd[][] */
-//	ckd_status = !( ckd_status );
-//
-//	/* update energy */
-//	E = Reticolo::energy();
-//} /* -----  end of method Reticolo::Sweep  ----- */
-//
-///*
-// * ------------------------------------------------------------------
-// *       Class: Reticolo
-// *      Method: cluster
-// * Description: 
-// * ------------------------------------------------------------------
-// */
-//void
-//Reticolo::cluster ( unsigned int i, unsigned int j ) {
-//	/* flip spin with 50 % probability */
-//	bool flip = (bool) ( rand() % 2 );
-//
-//
-//	/* assign initial cluster site */
-//	**stack = i;
-//	*( *stack + 1 ) = j;
-//
-//	/* update 'ckd' */
-//	*( *( ckd + i ) + j ) = !*( *( ckd + i ) + j );
-//
-//	/* firs free element of the stack */
-//	tail = 1;
-//
-////	fprintf( stderr, "\n" );
-//
-//	/* counter */
-//	unsigned short int a;
-//	/* indexes */
-//	unsigned short int n, m;
-//
-//	/* temporary pointers */
-//	unsigned short int *sptr = NULL;
-//	const signed short int *aptr = NULL;
-//	bool *cptr = NULL;
-//	Sito *xptr = NULL;
-//
-//	/* temporary magnetization */
-////	int magnetization = 0;
-//
-//	do {
-//		/* take/free last stack element */
-//		sptr = *( stack + ( -- tail ) );
-//		i = *( sptr ); j = *( ++ sptr );
-//
-//		/* assign (spin) temporary pointer */
-//		xptr = *( x + i ) + j;
-//
-////		fprintf( stdout, "(%u, %u)\n", i, j );
-//
-//		/* sweep over nearest neighbours */
-//		for ( a = 0; a < 4; a ++ ) {
-//			/* assign (displacement) temporary pointer */
-//			aptr = *( s + a );
-//
-//			/* assign neighbours coordinates */
-//			n = (unsigned) ( (signed) L + i + *( aptr ) ) % L;
-//			m = (unsigned) ( (signed) L + j + *( ++ aptr ) ) % L;
-//
-//			/* assign (check bool) temporary variable */
-//			cptr = *( ckd + n ) + m;
-//
-//			/* if spin does not belong to a cluster */
-//			if ( *cptr == ckd_status ) {
-//
-//				/* if spin are parallel */
-//				if ( *( xptr ) == *( *( x + n ) + m ) ) {
-//
-//					/* check wether activate bond or not */
-//					if ( (long double) rand() / RAND_MAX <= EB ) {
-//						/* assign (stack) temporary pinter */
-//						sptr = *( stack + tail );
-//
-//						/* push ( n, m ) into stack */
-//						*( sptr ) = n; *( ++ sptr ) = m;
-//
-//						/* TikZ */
-////						printf( "\\draw (%u, %u) -- (%u, %u);\n", i, j, n, m );
-//
-//						/* increase 'tail' */
-//						tail ++;
-//
-//						/* update 'ckd' */
-//						*cptr = !( *cptr );
-//					}
-//				}
-//			}
-//		}
-//
-//		/* flip spin */
-//		*( xptr ) ^= flip;
-//	} while ( tail != head );
-//
-//} /* -----  end of method Reticolo::cluster  ----- */
-//
-///*
-// * ------------------------------------------------------------------
-// *       Class: Reticolo
-// *      Method: print_lattice
-// * Description: 
-// * ------------------------------------------------------------------
-// */
-//void
-//Reticolo::print_lattice ( void ) {
-//	FILE *stream = stderr;
-//	register signed short int j;
-//	for ( unsigned short int i = 0; i < L; i ++ ) {
+void
+Reticolo::Sweep ( void ) {
+	/* ckd temporary pointer */
+	register bool *c = NULL;
+	register unsigned short int j;
+
+	/* reset magnetization (sweep, max) */
+	Ms = Mm = (long int) 0;
+	M2 = (unsigned long) 0;
+
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		c = *( ckd + i );
+
+		for ( j = 0; j < L; j ++ ) {
+			/* if spin had not been visited yet */
+			if ( *( c ) == ckd_status )
+				M2 += Reticolo::cluster( i, j );
+
+			/* update pointer */
+			c ++;
+		}
+	}
+
+	/* auxiliary variable to avoid resetting ckd[][] */
+	ckd_status = !( ckd_status );
+
+	/* update energy */
+	E = Reticolo::energy();
+	Ms = Reticolo::magnetization();
+} /* -----  end of method Reticolo::Sweep  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: correlator
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Reticolo::correlator ( void ) {
+	/* temporary pointer */
+	register Sito *xptr = NULL;
+
+	/* temporary variables (mean over rows and columns) */
+	short int r[L] = {}, c[L] = {};
+	register short int *cptr = NULL;
+	short int *rptr = NULL;
+
+	/* sweep all over lattice */
+	register unsigned short int j;
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* assign temporary site pointer */
+		xptr = *( x + i );
+
+		/* assign array pointers */
+		rptr = r + i;
+		cptr = c;
+
+		/* evaluate means over columns and rows */
+		for ( j = 0; j < L; j ++ ) {
+			/* update means */
+			*rptr += ( *xptr ).s;
+			*cptr += ( *xptr ).s;
+
+			/* update pointers */
+			xptr ++;
+			cptr ++;
+		}
+	}
+
+	/* correlator pointer */
+	register double *sptr = NULL;
+	/* evaluate correlators */
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* set correlator pointer to t = 0 */
+		sptr = corr;
+
+		/* reuse old pointers */
+		rptr = r + i;
+		cptr = c + i;
+
+		for ( j = 0; j < L - i; j ++ ) {
+			/* rows */
+			*sptr += *( rptr ) * *( rptr + j );
+			/* columns */
+			*sptr += *( cptr ) * *( cptr + j );
+
+			/* update pointer */
+			sptr ++;
+		}
+
+		for ( j = 0; j < i; j ++ ) {
+			/* rows */
+			*sptr += *( rptr ) * *( r + j );
+			/* columns */
+			*sptr += *( cptr ) * *( c + j );
+
+			/* update pointer */
+			sptr ++;
+		}
+	}
+
+} /* -----  end of method Reticolo::correlator  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: cluster
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+unsigned long int
+Reticolo::cluster ( unsigned int i, unsigned int j ) {
+	/* flip spin with 50 % probability (flip = {+,-}) */
+	spin flip = (spin) ( 2 * ( rand() % 2 ) - 1 );
+
+	/* assign initial cluster site */
+	**stack = i;
+	*( *stack + 1 ) = j;
+
+	/* update 'ckd' */
+	*( *( ckd + i ) + j ) = !*( *( ckd + i ) + j );
+
+	/* first free element of the stack */
+	tail = 1;
+
+//	fprintf( stderr, "\n" );
+
+	/* counter */
+	unsigned short int a;
+	/* indexes */
+	unsigned short int n, m;
+	/* cluster size */
+	unsigned long int size = (long int) 0;
+
+	/* temporary pointers */
+	unsigned short int *sptr = NULL;
+	unsigned short int *nnptr = NULL;
+	bool *cptr = NULL;
+	Sito *xptr = NULL;
+
+	do {
+		/* take/free last stack element */
+		sptr = *( stack + ( -- tail ) );
+		i = *( sptr ); j = *( ++ sptr );
+
+		/* assign (spin) temporary pointer */
+		xptr = *( x + i ) + j;
+
+//		fprintf( stdout, "(%u, %u)\n", i, j );
+
+		/* sweep over nearest neighbours */
+		for ( a = 0; a < 4; a ++ ) {
+			/* assign nearest neighbour coordinate */
+			nnptr = *( ( *xptr ).nn + a );
+
+			/* assign neighbours coordinates */
+			n = (unsigned) *( nnptr );
+			m = (unsigned) *( ++ nnptr );
+
+			/* assign (check bool) temporary variable */
+			cptr = *( ckd + n ) + m;
+
+			/* if spin does not belong to a cluster */
+			if ( *cptr == ckd_status ) {
+
+				/* if spin are parallel */
+				if ( ( *xptr ).s == ( *( *( x + n ) + m ) ).s ) {
+
+					/* check wether activate bond or not */
+					if ( (long double) rand() / RAND_MAX <= EB ) {
+						/* assign (stack) temporary pinter */
+						sptr = *( stack + tail );
+
+						/* push ( n, m ) into stack */
+						*( sptr ) = n; *( ++ sptr ) = m;
+
+						/* TikZ */
+//						fprintf( stderr, "\\draw (%u, %u) -- (%u, %u);\n", i, j, n, m );
+
+						/* increase 'tail' */
+						tail ++;
+
+						/* update 'ckd' */
+						*cptr = !( *cptr );
+					}
+				}
+			}
+		}
+
+		/* update size */
+		size ++;
+		/* update magnetization (sweep) */
+//		Ms += (long int) ( *xptr ).s;
+
+		/* flip spin */
+		( *xptr ).s *= flip;
+	} while ( tail != head );
+
+	/* uprate magnetization (max) */
+	Mm = ( size > Mm ? size : Mm );
+
+	return size * size;
+} /* -----  end of method Reticolo::cluster  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: magnetization
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+long int
+Reticolo::magnetization ( void ) {
+	/* reset magnetization */
+	Ms = (long int) 0;
+
+	register Sito *xptr = NULL;
+	register unsigned short int j;
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* assign temporary pointer */
+		xptr = *( x + i );
+
+		for ( j = 0; j < L; j ++ ) {
+			Ms += (long int) ( *xptr ).s;
+			xptr ++;
+		}
+	}
+
+	return Ms;
+} /* -----  end of method Reticolo::magnetization  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: print_lattice
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Reticolo::print_lattice ( void ) {
+	FILE *stream = stderr;
+	register signed short int j;
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		for ( j = 0; j < L; j ++ ) {
 //		for ( j = L; j > 0; j -- ) {
-//			fprintf( stream, "%u ", *( *( x + i ) + j ) );
-////			if ( *( *( x + i ) + j ) ) { /* TiKz */
-////				fprintf( stderr, "%u/%u, ", i, j );
-////			}
-//		}
+//			fprintf( stream, "%u ", ( *( *( x + i ) + j ) ).s );
+
+			if ( (*( *( x + i ) + j )).s == 1 ) /* TiKz */
+				fprintf( stream, "%u/%u, ", i, j );
+		}
 //		fprintf( stream, "\n" );
-//	}
-//} /* -----  end of method Reticolo::print_lattice  ----- */
-//
+	}
+} /* -----  end of method Reticolo::print_lattice  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: print_correlator
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Reticolo::print_correlator ( FILE *stream ) {
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		fprintf( stream, "%hu\t%.16g\n", i, (double) *( corr + i ) / ( 2 * Reticolo::L ) );
+	}
+} /* -----  end of method Reticolo::print_correlator  ----- */
+
