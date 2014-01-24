@@ -7,12 +7,15 @@
 *.gif
 *.png
 *.pdf
+*.eps
 # .log files
 *.log
 # GNUplot files
 #*.gpl
 # data files
 *.dat
+*.txt
+*.tex
 # executable
 *.a
 *.o
