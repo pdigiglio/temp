@@ -8,11 +8,13 @@ k_primo( x ) = 2 * ( tanh( g(x) ) ) ** 2 - 1
 
 # data filename
 datafile = "./energy_plot"
+datafile1 = datafile."_c"
 
 set xlabel "beta"
 set ylabel "u(beta)"
 set samples 100
 
 plot [0:] - ( 1 + 2 * k_primo( x ) * EllipticK( k(x) ) / pi ) / tanh( g(x) ),\
-	datafile.".dat" using ($1/2):( 2 * $2):(2 * $3) with yerrorbars #, datafile.".dat" with lines
+	datafile.".dat" using 1:2:3 with yerrorbars title "Metropolis",\
+	datafile1.".dat" u ($1/2):2:3 with yerrorbars title "Cluster"
 
