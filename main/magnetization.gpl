@@ -1,0 +1,14 @@
+B_c = 0.4406868
+J = 1
+
+set sample 1000
+set autoscale
+
+g( x ) = 2 * J * x
+# Define magnetization function
+mag( x ) = ( 1 - 1 / ( ( sinh ( g(x) ) ) ** 4 ) ) ** ( 1. / 8. )
+m( x ) = ( x > B_c ) ? mag( x ) : 0
+
+plot m(x) title "Magnetizzazione",\
+	"./magnetizzazione_plot.dat" u 1:2:3 with yerrorbars title "Lattice sweep",\
+	"./magnetizzazione_plot.dat" u 1:4:5 with yerrorbars title "Cluster size"
