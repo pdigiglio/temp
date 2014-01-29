@@ -164,11 +164,13 @@ main ( int argc, char *argv[] ) {
 		*( err + c ) = (long double) sqrtl( *( err + c ) );
 
 		/* stampo nel file media e varianza */
-		round( *( mean + c ), *( err + c ), out_stream );
+//		round( *( mean + c ), *( err + c ), out_stream );
+		fprintf( out_stream, "%Lg\t%Lg", *( mean + c ), *( err + c ) );
 		fprintf( out_stream, "\t" );
 
 		/* stampo nel file media e sdom */
-		round( *( mean + c ), *( err + c ) / sqrtl( l ), out_stream );
+//		round( *( mean + c ), *( err + c ) / sqrtl( l ), out_stream );
+		fprintf( out_stream, "%Lg\t%Lg", *( mean + c ), *( err + c ) / sqrtl( l ) );
 		fprintf( out_stream, "\t" );
 	}
 
