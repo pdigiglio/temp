@@ -27,7 +27,7 @@ clean:
 	@-rm --recursive --force --verbose *.o *.d
 
 distclean: clean
-	@-rm --recursive --force --verbose $(MAIN) analisi
+	@-rm --recursive --force --verbose $(MAIN) $(ANALISI)
 
 # Directory for modules and headers
 MDIR	= ../modules
