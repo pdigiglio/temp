@@ -54,7 +54,8 @@ ifneq ($(LBSPATH),)
 endif
 
 # Add ROOT libaries
-#LDFLAGS += `root-config --libs --cflags`
+ROOT = `root-config --libs --cflags`
+#LDFLAGS += $(ROOT)
 
 # Creo l'opzione da passare al compilatore per le directory dei file 
 # .h "custom". L'opzione '-I-' indica che nelle directory specificate
@@ -122,6 +123,11 @@ $(MAIN): %: $(OBJS) Makefile
 $(ANALISI): %: %.o round.o
 	@echo -e "[$(ANALISI)] $(CXX) -o `tput bold`$@`tput sgr0` -c `tput setaf 2`$^`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
 	@$(CXX) $^ -o $@ $(CXXFLAGS) $(LDFLAGS)
+
+# FIXME
+ac_fit: %: %.cpp
+	@echo -e "[`tput setaf 6`$@`tput sgr0`] $(CXX) -c `tput setaf 2`$^`tput sgr0` -o `tput bold`$@`tput sgr0` $(ROOT) $(CXXFLAGS)"
+	@$(CXX) $^ -o $@ $(CXXFLAGS) $(ROOT)
 
 # Produce executables
 mkxeq: $(MAIN)
