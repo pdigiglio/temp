@@ -36,8 +36,8 @@
 #include "round.h"
 
 /* auto-correlator domain */
-#define ACD	30
-#define BIN	1
+#define ACD	15
+#define BIN	10
 
 int
 main ( int argc, char *argv[] ) {
@@ -137,10 +137,10 @@ main ( int argc, char *argv[] ) {
 	}
 
 	FILE *stream = stdout;
-	fprintf( stream, "#bin-size\t" );
+	fprintf( stream, "#b-size\t" );
 
 	/* head */
-	fprintf( stream, "#ord\nmean\tvariance\tmean\tsdom\n" );
+	fprintf( stream, "mean\tvar\tmean\tsdom\n" );
 
 	/* bin size */
 	fprintf( stream, "%u\t", ord);
@@ -188,11 +188,9 @@ main ( int argc, char *argv[] ) {
 
 	/* calcolo gli autocorrelatori */
 	for ( unsigned short int t = 0; t < ACD; t ++ ) {
-		fprintf( stderr, "t: %u\n", t );
 		/* assegno i puntatori temporanei */
 		aptr = a_co + t;
 		eptr = a_co_err + t;
-		fprintf( stderr, "assign\n" );
 
 		/* azzero media e errore */
 		*aptr = (long double) 0;
@@ -202,7 +200,6 @@ main ( int argc, char *argv[] ) {
 		fprintf( oFile, "%hu\t", t );
 		
 		for ( unsigned short int j = 0; j < BIN; j ++ ) {
-			fprintf( stderr, "j: %u\n", j );
 			/* azzero auto-correlatore */
 			ac = (long double) 0;
 			/* azzero media parziale */
@@ -216,20 +213,18 @@ main ( int argc, char *argv[] ) {
 			for ( s = start; s < stop; s ++ )
 				mp += *( f + s );
 
-			fprintf( stdout, "media: %Lg\n", mp );
 
 			/* normalizzo */
 			mp /= (long double) step;
 
 			for ( s = start; s < stop - t; s ++ )
-				ac += *( f + s ) * *( f + s + t );
+				ac += ( *( f + s ) - mp ) * ( *( f + s + t ) - mp );
 
 
 			/* normalizzo */
 			ac /= (long double) ( s - start );
-			fprintf( stdout, "auto: %Lg div: %d \n", ac, (int) ( s - start ) );
 			
-			ac -= mp * mp;
+//			ac -= mp * mp;
 
 			/* aggiorno l'autocorrelatore */
 			*aptr += ac;
