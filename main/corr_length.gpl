@@ -1,0 +1,7 @@
+# Numero di colonne da processare
+cols = 5
+
+# Varianza
+#plot for [i=1:cols] "./cl_binning.dat" using 1:(column( 2 * i + 1 )) with lp title sprintf( "tempo: %u", i )
+# Deviazione sulla media
+plot for [i=1:cols] "./cl_binning.dat" using 1:(column( 4 * i + 1 )) with lp title sprintf( "tempo: %u", i )
