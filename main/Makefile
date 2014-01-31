@@ -124,8 +124,12 @@ $(ANALISI): %: %.o round.o
 	@echo -e "[$(ANALISI)] $(CXX) -o `tput bold`$@`tput sgr0` -c `tput setaf 2`$^`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
 	@$(CXX) $^ -o $@ $(CXXFLAGS) $(LDFLAGS)
 
-# FIXME
-ac_fit: %: %.cpp
+# Explicit rule to make ROOT analasys routine module
+ac_fit.o: ac_fit.cpp
+	$(CXX) -c $< -o $@ $(CXXFLAGS) $(LDFLAGS) $(ROOT)
+
+# ROOT analysis routine
+ac_fit: %: %.o round.o
 	@echo -e "[`tput setaf 6`$@`tput sgr0`] $(CXX) -c `tput setaf 2`$^`tput sgr0` -o `tput bold`$@`tput sgr0` $(ROOT) $(CXXFLAGS)"
 	@$(CXX) $^ -o $@ $(CXXFLAGS) $(ROOT)
 
