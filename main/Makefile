@@ -5,7 +5,9 @@
 # Main file to compile
 MAIN	= ising #lennard_jones #free_part
 # Data analysis
-ANALISI	= analisi corr_length
+ANALISI	= analisi corr_length binning
+# Fit
+FIT		= ac_fit
 # Modules to create
 COMMON	= round info_time
 
@@ -27,7 +29,7 @@ clean:
 	@-rm --recursive --force --verbose *.o *.d
 
 distclean: clean
-	@-rm --recursive --force --verbose $(MAIN) $(ANALISI)
+	@-rm --recursive --force --verbose $(MAIN) $(ANALISI) $(FIT)
 
 # Directory for modules and headers
 MDIR	= ../modules
@@ -125,11 +127,11 @@ $(ANALISI): %: %.o round.o
 	@$(CXX) $^ -o $@ $(CXXFLAGS) $(LDFLAGS)
 
 # Explicit rule to make ROOT analasys routine module
-ac_fit.o: ac_fit.cpp
+$(FIT).o: $(FIT).cpp
 	$(CXX) -c $< -o $@ $(CXXFLAGS) $(LDFLAGS) $(ROOT)
 
 # ROOT analysis routine
-ac_fit: %: %.o round.o
+$(FIT): %: %.o round.o
 	@echo -e "[`tput setaf 6`$@`tput sgr0`] $(CXX) -c `tput setaf 2`$^`tput sgr0` -o `tput bold`$@`tput sgr0` $(ROOT) $(CXXFLAGS)"
 	@$(CXX) $^ -o $@ $(CXXFLAGS) $(ROOT)
 
