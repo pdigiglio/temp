@@ -41,21 +41,15 @@
 
 int
 main ( int argc, char *argv[] ) {
-	/* ordine della suddivisione */
-	unsigned short int ord = 1;
-	
 	/* controllo che argomenti da linea di comando */ 
-	if ( argc == 3 )
-		ord = atoi( argv[2] );
-	else if ( argc == 2 )
-		fprintf( stderr, " > Dimensione bin impostata di default a %hu\n", ord );
-	else { /* se sono sbagliati */
-		if ( argc > 3 )
-			fprintf( stderr, " > Troppi argomenti!\n");
-		else if ( argc < 2 )
-			fprintf( stderr, " > Manca il nome del file!\n");
+	if ( argc > 3 ) {
+		fprintf( stderr, " > Troppi argomenti!\n");
 
-		fprintf( stderr, "[uso] ./analisi {nome file} {dim. bin}\n");
+		/* esco dal programma */
+		exit( EXIT_FAILURE );
+	} else if ( argc < 2 ) {
+		fprintf( stderr, " > Manca il nome del file!\n");
+
 		/* esco dal programma */
 		exit( EXIT_FAILURE );
 	}
@@ -73,24 +67,10 @@ main ( int argc, char *argv[] ) {
 	 * -------------------------------------------------------------*/
 
 	/* valori delle misure */
-	long double *f = NULL, *fptr = NULL;
-	long double temp;
-
-	/* media ed errore (inizializzate a zero) */
-	long double mean = (long double) 0;
-	long double err =  (long double) 0;
-
-	/* binning output file */
-	char out_file_name[] = "analisi.dat";
-	FILE *out_stream = fopen( out_file_name, "w" );
-	if ( out_stream == NULL ) {
-		fprintf ( stderr, "couldn't open file '%s'; %s\n",
-				out_file_name, strerror(errno) );
-		exit (EXIT_FAILURE);
-	}
+	long double *f = NULL;
 
 	/* acquisisco i valori e calcolo la media */
-	unsigned int l, i;
+	unsigned int l;
 	for ( l = 0; !( feof(pFile) ); l ++ ) {
 		/* alloco la memoria per i valori in input */
 		f = (long double *) realloc( f, (l + 1) * sizeof(long double) );
@@ -100,27 +80,7 @@ main ( int argc, char *argv[] ) {
 		}
 
 		/* assegno puntatore temporaneo */
-		fptr = f + l;
-
-		/* azzero i valori */
-		*fptr = (long double) 0;
-
-		/* acquisisco i dati */
-		for ( i = 0; i < ord && !( feof(pFile) ); i ++ ) {
-			fscanf(pFile, "%Lf\n, ", &temp);
-			*fptr += temp;
-		}
-		
-//		fprintf( out_stream, "%u\t", l );
-		/* normalizzo i cluster */
-		*fptr /= (long double) i;
-		fprintf( out_stream, "%LG\n", *fptr );
-			
-		/* aggiorno le medie */
-		temp = *fptr;
-
-		mean += temp;
-		err += temp * temp;
+		fscanf( pFile, "%Lg\n", f + l );
 	}
 
 	/* chiudo il file di input */
@@ -129,38 +89,6 @@ main ( int argc, char *argv[] ) {
 				argv[1], strerror(errno) );
 		exit (EXIT_FAILURE);
 	}
-
-	if( fclose(out_stream) == EOF ) { /* close output file */
-		fprintf ( stderr, "couldn't close file '%s'; %s\n",
-				out_file_name, strerror(errno) );
-		exit (EXIT_FAILURE);
-	}
-
-	FILE *stream = stdout;
-	fprintf( stream, "#b-size\t" );
-
-	/* head */
-	fprintf( stream, "mean\tvar\tmean\tsdom\n" );
-
-	/* bin size */
-	fprintf( stream, "%u\t", ord);
-
-	/* normalizzo la media */
-	mean /= (long double) l;
-
-	/* calcolo la varianza */
-	err /= (long double) l;
-	err -= mean * mean;
-	err = (long double) sqrtl( err );
-
-	/* stampo nel file media e varianza */
-	round( mean, err, stream );
-	fprintf( stream, "\t" );
-
-	/* stampo nel file media e sdom */
-	round( mean, err / sqrtl( l ), stream );
-	fprintf( stream, "\n" );
-	
 
 	/*-------------------------------------------------------------------
 	 *  AUTOCORRELATORI
@@ -224,8 +152,6 @@ main ( int argc, char *argv[] ) {
 			/* normalizzo */
 			ac /= (long double) ( s - start );
 			
-//			ac -= mp * mp;
-
 			/* aggiorno l'autocorrelatore */
 			*aptr += ac;
 			*eptr += ac * ac;
