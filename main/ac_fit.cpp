@@ -45,7 +45,7 @@ main ( int argc, char *argv[] ) {
 	}
 
 	/* input data plot */
-	TGraph *gr1 = new TGraphErrors ( argv[1], "%lg\t%lg\t%lg\n" );
+	TGraph *gr1 = new TGraphErrors ( (TString) argv[1] + ".dat", "%lg\t%lg\t%lg\n" );
 
 	(*gStyle).SetOptFit();
 
@@ -76,7 +76,7 @@ main ( int argc, char *argv[] ) {
 	/* 2 = rosso */
 	(*fit).SetLineColor(2);
 	/* interpolo */
-	(*gr1).Fit("f1", "R");
+	(*gr1).Fit("f1", "QR");
 	
 	/* output-file name */
 	FILE *stream = stdout;
@@ -88,7 +88,7 @@ main ( int argc, char *argv[] ) {
 
 	/* Assi, Punti, (linea) Continua */
 	(*gr1).Draw("AP");
-	(*c1).Print( (TString) argv[1] + ".svg", "svg");
+	(*c1).Print( (TString) argv[1] + ".png", "png");
 
 	return 0;
 }				/* ----------  end of function main  ---------- */
