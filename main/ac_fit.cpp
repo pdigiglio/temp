@@ -47,6 +47,8 @@ main ( int argc, char *argv[] ) {
 	/* input data plot */
 	TGraph *gr1 = new TGraphErrors ( argv[1], "%lg\t%lg\t%lg\n" );
 
+	(*gStyle).SetOptFit();
+
 	/* 3 = verde */
 	(*gr1).SetMarkerColor(3);
 	/* titolo del grafico */
@@ -68,7 +70,7 @@ main ( int argc, char *argv[] ) {
 	** avvenga secondo una legge esponenziale, quindi
 	** la interpolo con una funzione esponenziale
 	*/
-	TF1 *fit = new TF1( "f1", "exp( - x / [0] )", 0., 12. );
+	TF1 *fit = new TF1( "f1", "exp( - x / [0] )", 1., 12. );
 	/* diamo un "aiutino" a ROOT */
 	(*fit).SetParameter( 0, 2. );
 	/* 2 = rosso */
@@ -79,12 +81,13 @@ main ( int argc, char *argv[] ) {
 	/* output-file name */
 	FILE *stream = stdout;
 
-	fprintf( stream, "#B\ttau\terr\n%g\t", (double) atof( argv[2] ) );
+	fprintf( stream, "#B\ttau\terr\tchi/DOF\n" );
+	fprintf( stream, "%g\t", (double) atof( argv[2] ) );
 	round( (long double) (*fit).GetParameter( 0 ), (long double) (*fit).GetParError(0), stream );
-	fprintf( stream, "\n" );
+	fprintf( stream, "\t%g\n", (*fit).GetChisquare() / (*fit).GetNDF() );
 
 	/* Assi, Punti, (linea) Continua */
-	(*gr1).Draw("APC");
+	(*gr1).Draw("AP");
 	(*c1).Print( (TString) argv[1] + ".svg", "svg");
 
 	return 0;
