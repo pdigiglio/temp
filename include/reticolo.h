@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "beta.h"
 
-/* lattice side */
-#define	L	100
+#include "beta.h"
+#include "side.h"
+
 /* dimension */
 #define D 2
 
@@ -27,6 +27,7 @@ class Reticolo {
 		~Reticolo (void); /* dtor */
 
 		double get_E ( void );
+		/* magnetizazions measured in various ways */
 		double get_M2 ( void );
 		double get_Mm ( void );
 		double get_Ms ( void );
@@ -92,11 +93,11 @@ class Reticolo {
 		long unsigned int M2;
 
 		/* magnetizations (max cluster size, random, sweep) */
-		unsigned long int Mm;
-		long int Mr, Ms;
+		unsigned long int Mm = 0;
+		long int Ms = 0;
 
 		/* returns spin in *pos */
-		spin S ( const unsigned short int p[] );
+		spin S ( const unsigned short int *p = NULL );
 
 		/* return spin */
 //		bool spin ( unsigned int i, unsigned int j );
@@ -161,7 +162,7 @@ Reticolo::get_Ms ( void ) {
  * ------------------------------------------------------------------
  */
 inline spin
-Reticolo::S ( const unsigned short int p[] ) {
+Reticolo::S ( const unsigned short int *p ) {
 	return (*( *( x + *p ) + *( ++ p ) )).s;
 } /* -----  end of method Reticolo::S  ----- */
 
