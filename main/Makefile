@@ -8,6 +8,8 @@ MAIN	= ising #lennard_jones #free_part
 ANALISI	= analisi corr_length binning
 # Fit
 FIT		= ac_fit
+# Miscellanea
+MISC	= susc
 # Modules to create
 COMMON	= round info_time
 
@@ -29,7 +31,7 @@ clean:
 	@-rm --recursive --force --verbose *.o *.d
 
 distclean: clean
-	@-rm --recursive --force --verbose $(MAIN) $(ANALISI) $(FIT)
+	@-rm --recursive --force --verbose $(MAIN) $(ANALISI) $(FIT) $(MISC)
 
 # Directory for modules and headers
 MDIR	= ../modules
@@ -134,6 +136,9 @@ $(FIT).o: $(FIT).cpp
 $(FIT): %: %.o round.o
 	@echo -e "[`tput setaf 6`$@`tput sgr0`] $(CXX) -c `tput setaf 2`$^`tput sgr0` -o `tput bold`$@`tput sgr0` $(ROOT) $(CXXFLAGS)"
 	@$(CXX) $^ -o $@ $(CXXFLAGS) $(ROOT)
+
+$(MISC): %: %.o
+	$(CXX) $^ -o $@ $(CXXFLAGS) $(LDFLAGS)
 
 # Produce executables
 mkxeq: $(MAIN)
