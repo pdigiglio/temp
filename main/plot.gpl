@@ -1,0 +1,15 @@
+# Filename
+if( ! ( exists( "fn" ) ) ) {
+	print "Enter filename!"
+	quit
+}
+
+print "[`tput setaf 6`GNUplot`tput sgr0`] processing: '".fn.".dat'"
+
+set grid
+
+# plot data
+set terminal pngcairo size 700,500 enhanced font 'Verdana,10'
+set output fn.".png"
+
+plot fn.".dat" title sprintf( "%s", fn )

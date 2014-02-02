@@ -1,0 +1,20 @@
+# Filename
+if( ! ( exists( "fn" ) ) ) {
+	print "Enter filename!"
+	quit
+}
+
+print "[`tput setaf 6`GNUplot`tput sgr0`] Bin >> processing: '".fn.".dat'"
+
+set grid
+
+# plot data
+set terminal pngcairo size 700,500 enhanced font 'Verdana,10'
+
+set output fn."_sdom.png"
+plot fn.".dat" using 1:6 with linespoints title sprintf( "%s", fn ), \
+	fn.".dat" using 1:7 with linespoints title "(round)"
+
+set output fn."_var.png"
+plot fn.".dat" using 1:3 with linespoints title sprintf( "%s", fn ), \
+	fn.".dat" using 1:4 with linespoints title "(round)"
