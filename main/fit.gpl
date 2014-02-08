@@ -1,0 +1,51 @@
+# File to fit
+if ( ! exists("filename") ) {
+	print "[`tput setaf 1`fatal`tput sgr0`] You must specify a file to fit!"
+	exit
+} else {
+	print " >> Processing file name '`tput setaf 2`".filename.".dat`tput sgr0`'"
+}
+
+# Function to fit with
+f( x ) = a - x / xi
+# Set initial values
+xi = 3
+a = 1
+
+# Fit range
+fmin = 1
+fmax = 4
+
+set fit errorvariables
+fit [fmin:fmax] f(x) filename.".dat" u 1:( log( $2 ) ):( $3 / $2 ) via a,xi
+
+# Output fit parameters file name
+ffn = "./corr_length_beta_new"
+# Print parameters
+#set print ffn.".dat" append
+print "#B\tcorr_len\t\terr\t\ta\t\terr\tchisquare\tfmin\tfmax"
+print filename,"\t",xi,"\t",xi_err,"\t",a,"\t",a_err,"\t",FIT_STDFIT,"\t",fmin,"\t",fmax
+set print
+
+# Print plot to file
+set terminal pngcairo size 700,500 enhanced font 'Verdana,10'
+
+# Plot original file
+set output filename.".png"
+set autoscale
+set grid
+plot filename.".dat" using 1:2:3 with yerrorbars notitle,\
+	filename.".dat" using 1:2 with lines title sprintf("%s", filename )
+
+# Print logarithmicized file
+set output filename."_log.png"
+
+set xrange [0:fmax]
+
+set label sprintf( "slope = %g +- %.2g",xi,xi_err) at graph 0.5,0.15
+plot filename.".dat" using 1:( log( $2 ) ):( $3 / $2 ) w yerrorbars, f( x )
+
+set terminal wxt
+
+replot
+unset label
