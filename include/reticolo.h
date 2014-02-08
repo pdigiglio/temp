@@ -10,7 +10,10 @@
 #include "side.h"
 
 /* dimension */
-#define D 2
+#define D	2
+
+/* number of states ( 2 -> Ising; 3 -> Potts ) */
+#define Q	3
 
 /* short-cut to extend do Potts model */
 typedef short int spin;
@@ -24,16 +27,17 @@ typedef short int spin;
 class Reticolo {
 	public:
 		Reticolo (void); /* ctor */
-		~Reticolo (void); /* dtor */
+		virtual ~Reticolo (void); /* dtor */
 
 		double get_E ( void );
+
 		/* magnetizazions measured in various ways */
 		double get_M2 ( void );
 		double get_Mm ( void );
 		double get_Ms ( void );
 
 		/* metropolis system update */
-		void sweep ( void );
+		virtual void sweep ( void );
 		/* Swendsen-Wang algorithm */
 		void Sweep ( void );
 		/* evaluate correlator */
@@ -42,16 +46,10 @@ class Reticolo {
 		void print_lattice ( void );
 		void print_correlator ( FILE *stream = stdout );
 
-		/* return energy of site (i,j) */
-		short int single_E ( unsigned int i, unsigned int j );
-		/* evaluate lattice energy */
-		long int energy ( void );
-		/* evaluate magnetization running all over lattice */
-		long int magnetization ( void );
-
 		/* useful constants (not to be evaluated at every cycle) */
 		const long double EB = (long double) 1 - expl( (long double) - 2 * B );
 		static const long int L2 = L * L;
+		static const short unsigned int D2 = 2 * D;
 		
 	protected:
 		struct sito {
@@ -61,11 +59,24 @@ class Reticolo {
 			spin s;
 		} x[L][L];
 
+		
 		typedef struct sito Sito;
+
+		/* return energy of site (i,j) */
+		virtual short int single_E ( unsigned int i, unsigned int j );
+
+		/* evaluate lattice energy */
+		virtual long int energy ( void );
+
+		/* evaluate magnetization running all over lattice */
+		long int magnetization ( void );
 
 		/* controls if a site has been already checked */
 		bool ckd[L][L] = {};
 		bool ckd_status = (bool) 0;
+
+		/* function that returns a random initial value for site */
+		spin rand_init_val ( void );
 
 		/* correlator */
 		double corr[L] = {};
@@ -165,6 +176,19 @@ inline spin
 Reticolo::S ( const unsigned short int *p ) {
 	return (*( *( x + *p ) + *( ++ p ) )).s;
 } /* -----  end of method Reticolo::S  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: rand_init_val
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline spin
+Reticolo::rand_init_val ( void ) {
+//	return (spin) ( 2 * ( rand() % (unsigned) Q ) - 1); // Ising
+	return (spin) ( rand() % (unsigned) Q ); // Potts or higher
+} /* -----  end of method Reticolo::rand_init_val  ----- */
 
 /*
  * ------------------------------------------------------------------

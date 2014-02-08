@@ -44,8 +44,8 @@ Reticolo::Reticolo (void) {
 		xptr = *( x + i );
 
 		for ( j = 0; j < L; j ++ ) {
-			/* assign spin ( 1 or -1 ) */
-			( *xptr ).s = 2 * ( rand() % 2 ) - 1;
+			/* assign spin */
+			( *xptr ).s = 2; //rand_init_val();
 
 			/* assign nearest neighbours */
 			for ( a = 0; a < 4; a ++ ) {	
@@ -229,6 +229,9 @@ Reticolo::correlator ( void ) {
 	/* sweep all over lattice */
 	register unsigned short int j;
 	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* reset correlator */
+		*( corr + i ) = (double) 0;
+
 		/* assign temporary site pointer */
 		xptr = *( x + i );
 
@@ -442,8 +445,10 @@ Reticolo::print_lattice ( void ) {
  */
 void
 Reticolo::print_correlator ( FILE *stream ) {
-	for ( unsigned short int i = 0; i < L; i ++ ) {
-		fprintf( stream, "%hu\t%.16g\n", i, (double) *( corr + i ) / ( 2 * Reticolo::L ) );
+	double norm = *corr;
+	for ( unsigned short int i = 0; i < L / 2; i ++ ) {
+		fprintf( stream, "%.15g\t", (double) *( corr + i ) / norm );
 	}
+	fprintf( stream, "\n" );
 } /* -----  end of method Reticolo::print_correlator  ----- */
 
