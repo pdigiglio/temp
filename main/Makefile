@@ -3,7 +3,7 @@
 #
 
 # Main file to compile
-MAIN	= ising #lennard_jones #free_part
+MAIN	= ising_potts #lennard_jones #free_part
 # Data analysis
 ANALISI	= analisi corr_length binning
 # Fit
@@ -19,7 +19,7 @@ MODULES	= $(COMMON)
 #MODULES += particella part_soffici # part_libere
 
 # Ising/Potts model
-MODULES	+= reticolo
+MODULES	+= reticolo potts
 
 .PHONY: all distclean clean
 
@@ -89,6 +89,8 @@ CXXFLAGS = -W -Wall -Wextra -Wunreachable-code -Wunused -Wformat-security -Wmiss
 
 # Add includes
 CXXFLAGS += $(INCPATH)
+# Add libraries
+CXXFLAGS += $(LDFLAGS)
 
 # Rule to make dependence file(s) for modules
 %.d: %.cc
@@ -106,39 +108,44 @@ CXXFLAGS += $(INCPATH)
 %.o: %.cc %.d Makefile
 	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -o `tput bold`$@`tput sgr0`" \
 		"-c `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
-	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(LDFLAGS)
+	@$(CXX) -c $< -o $@ $(CXXFLAGS)
 
 # Rule to make object file for main routine
 %.o: %.cpp %.d Makefile
 	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -o `tput bold`$@`tput sgr0`" \
 		"-c `tput setaf 2`$<`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
-	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(LDFLAGS)
+	@$(CXX) -c $< -o $@ $(CXXFLAGS)
 
 $(MAIN): %: $(OBJS) Makefile
 	@ echo
 	@ echo -e "[`tput setaf 6`info`tput sgr0`] Architettura rilevata:\t\t" \
 		`tput setaf 5`` gcc -march=native -Q --help=target | grep --text march | cut -f3 ``tput sgr0`
 	@ echo -e "[`tput setaf 6`info`tput sgr0`] Architettura selezionata:\t" `tput setaf 5`$(MARCH)`tput sgr0`
-	@ echo -e "[`tput bold``tput setaf 6`main`tput sgr0`]" \
+	@ echo -e "[`tput bold``tput setaf 6`$@`tput sgr0`]" \
 		"$(CXX) -o `tput bold`$@`tput sgr0` `tput setaf 2`$(OBJS)`tput sgr0`" \
 		"$(CXXFLAGS)$(INCPATH) $(LDFLAGS)\n"
-	@$(CXX) $(OBJS) -o $@ $(CXXFLAGS) $(LDFLAGS)
+	@$(CXX) $(OBJS) -o $@ $(CXXFLAGS)
 
 $(ANALISI): %: %.o round.o
-	@echo -e "[$(ANALISI)] $(CXX) -o `tput bold`$@`tput sgr0` -c `tput setaf 2`$^`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
-	@$(CXX) $^ -o $@ $(CXXFLAGS) $(LDFLAGS)
+	@echo -e "[`tput bold``tput bold``tput setaf 6`$@`tput sgr0`] $(CXX) -o `tput bold`$@`tput sgr0`" \
+		" -c `tput setaf 2`$^`tput sgr0` $(INCPATH)" # $(CXXFLAGS)"
+	@$(CXX) $^ -o $@ $(CXXFLAGS)
 
 # Explicit rule to make ROOT analasys routine module
 $(FIT).o: $(FIT).cpp
-	$(CXX) -c $< -o $@ $(CXXFLAGS) $(LDFLAGS) $(ROOT)
+	@echo -e "[`tput setaf 4`module`tput sgr0`] $(CXX) -o `tput bold`$@`tput sgr0`" \
+		"-c `tput setaf 2`$<`tput sgr0` $(INCPATH) $(ROOT)" # $(CXXFLAGS)"
+	@$(CXX) -c $< -o $@ $(CXXFLAGS) $(ROOT)
 
 # ROOT analysis routine
 $(FIT): %: %.o round.o
-	@echo -e "[`tput setaf 6`$@`tput sgr0`] $(CXX) -c `tput setaf 2`$^`tput sgr0` -o `tput bold`$@`tput sgr0` $(ROOT) $(CXXFLAGS)"
+	@echo -e "[`tput bold``tput setaf 6`$@`tput sgr0`] $(CXX) -c `tput setaf 2`$^`tput sgr0` -o `tput bold`$@`tput sgr0` $(ROOT) $(CXXFLAGS)"
 	@$(CXX) $^ -o $@ $(CXXFLAGS) $(ROOT)
 
+# Miscellanea
 $(MISC): %: %.o
-	$(CXX) $^ -o $@ $(CXXFLAGS) $(LDFLAGS)
+	@echo -e "[`tput bold``tput setaf 6`$@`tput sgr0`] $(CXX) -c `tput setaf 2`$^`tput sgr0` -o `tput bold`$@`tput sgr0` $(CXXFLAGS)"
+	@$(CXX) $^ -o $@ $(CXXFLAGS)
 
 # Produce executables
 mkxeq: $(MAIN)
