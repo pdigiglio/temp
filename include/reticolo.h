@@ -110,9 +110,6 @@ class Reticolo {
 		/* returns spin in *pos */
 		spin S ( const unsigned short int *p = NULL );
 
-		/* return spin */
-//		bool spin ( unsigned int i, unsigned int j );
-		
 		unsigned long int cluster ( unsigned int i, unsigned int j );
 }; /* -----  end of class Reticolo  ----- */
 
@@ -186,20 +183,8 @@ Reticolo::S ( const unsigned short int *p ) {
  */
 inline spin
 Reticolo::rand_init_val ( void ) {
-//	return (spin) ( 2 * ( rand() % (unsigned) Q ) - 1); // Ising
-	return (spin) ( rand() % (unsigned) Q ); // Potts or higher
+	return (spin) ( 2 * ( rand() % 2 ) - 1); // Ising
+//	return (spin) ( rand() % (unsigned) Q ); // Potts or higher
 } /* -----  end of method Reticolo::rand_init_val  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Reticolo
- *      Method: spin
- * Description: 
- * ------------------------------------------------------------------
- */
-//inline bool
-//Reticolo::spin ( unsigned int i, unsigned int j ) {
-//	return (bool) ( *( *( x + i) + j / 16 ) & *( t + j % 16 ) );
-//} /* -----  end of method Reticolo::spin  ----- */
 
 #endif   /* ----- #ifndef reticolo_INC  ----- */
