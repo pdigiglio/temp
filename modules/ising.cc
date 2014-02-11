@@ -6,7 +6,7 @@
  *    Description:  
  *
  *        Version:  1.0
- *        Created:  11/02/2014 20:10:15
+ *        Created:  11/02/2014 21:46:37
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -23,3 +23,15 @@
 #include <stdlib.h>
 
 #include <math.h>
+
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Ising
+ *      Method: Ising
+ * Description: [default ctor]
+ * ------------------------------------------------------------------
+ */
+Ising::Ising (void) {
+} /* -----  end of method Ising::Ising (def. ctor)  ----- */
+
