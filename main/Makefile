@@ -19,7 +19,7 @@ MODULES	= $(COMMON)
 #MODULES += particella part_soffici # part_libere
 
 # Ising/Potts model
-MODULES	+= reticolo potts
+MODULES	+= reticolo ising # potts
 
 .PHONY: all distclean clean
 
