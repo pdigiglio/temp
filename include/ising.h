@@ -17,7 +17,7 @@ class Ising: public Reticolo {
 		virtual ~Ising (void) {}; /* dtor */
 		
 		/* metropolis system update */
-		virtual void sweep ( void );
+		void sweep ( void );
 		/* Swendsen-Wang multi-cluster algorithm */
 		void Sweep ( void );
 
