@@ -16,7 +16,16 @@
 *.dat
 *.txt
 *.tex
-# executable
+
+# executabl
 *.a
 *.o
 *.d
+
+ac_fit
+analisi
+binning
+corr_length
+ising_potts
+susc
+
