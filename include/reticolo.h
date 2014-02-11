@@ -31,15 +31,6 @@ class Reticolo {
 
 		double get_E ( void );
 
-		/* magnetizazions measured in various ways */
-		double get_M2 ( void );
-		double get_Mm ( void );
-		double get_Ms ( void );
-
-		/* metropolis system update */
-		virtual void sweep ( void );
-		/* Swendsen-Wang algorithm */
-		void Sweep ( void );
 		/* evaluate correlator */
 		void correlator ( void );
 
@@ -68,9 +59,6 @@ class Reticolo {
 		/* evaluate lattice energy */
 		virtual long int energy ( void );
 
-		/* evaluate magnetization running all over lattice */
-		long int magnetization ( void );
-
 		/* controls if a site has been already checked */
 		bool ckd[L][L] = {};
 		bool ckd_status = (bool) 0;
@@ -92,6 +80,7 @@ class Reticolo {
 		/* cluster sites stack */
 		const unsigned int head = 0;
 		unsigned int tail = 0;
+
 		/* stack contains at most L * L elements */
 		unsigned short int stack[L2][D];
 
@@ -100,17 +89,9 @@ class Reticolo {
 
 		/* energy initialized in ctor */
 		long int E;
-		/* current magnetization */
-		long unsigned int M2;
-
-		/* magnetizations (max cluster size, random, sweep) */
-		unsigned long int Mm = 0;
-		long int Ms = 0;
 
 		/* returns spin in *pos */
 		spin S ( const unsigned short int *p = NULL );
-
-		unsigned long int cluster ( unsigned int i, unsigned int j );
 }; /* -----  end of class Reticolo  ----- */
 
 /*
@@ -124,43 +105,6 @@ inline double
 Reticolo::get_E ( void ) {
 	return (double) Reticolo::E;
 } /* -----  end of method Reticolo::get_E  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Reticolo
- *      Method: get_M2
- * Description: get susceptivity (to be normalized by L2)
- * ------------------------------------------------------------------
- */
-inline double
-Reticolo::get_M2 ( void ) {
-	/* normalize magnetization (divide by volume) */
-	return (double) Reticolo::M2;
-} /* -----  end of method Reticolo::get_M2  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Reticolo
- *      Method: get_Mm
- * Description: 
- * ------------------------------------------------------------------
- */
-inline double
-Reticolo::get_Mm ( void ) {
-	return (double) Mm;
-} /* -----  end of method Reticolo::get_Mm  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Reticolo
- *      Method: get_Ms
- * Description: 
- * ------------------------------------------------------------------
- */
-inline double
-Reticolo::get_Ms ( void ) {
-	return (double) Ms;
-} /* -----  end of method Reticolo::get_Ms  ----- */
 
 /*
  * ------------------------------------------------------------------
