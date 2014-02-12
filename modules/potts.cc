@@ -27,26 +27,50 @@
 /*
  * ------------------------------------------------------------------
  *       Class: Potts
+ *      Method: Potts
+ * Description: [default ctor]
+ * ------------------------------------------------------------------
+ */
+Potts::Potts (void) {
+	/* temporary pointer */
+	long double *mptr = NULL;
+	/* temporary angle */
+	long double theta;
+
+	/* assign possible values of magnetization */
+	for ( unsigned short int q = 0; q < Q; q ++ ) {
+		/* assign temporary pointer */
+		mptr = *( mag + q );
+		/* assign angle */
+		theta = (long double) 2 * M_PI * q / Q;
+
+		/* assign values */
+		*mptr = cosl( theta );
+		*( ++ mptr ) = sinl ( theta );
+	}
+} /* -----  end of method Potts::Potts (def. ctor)  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Potts
  *      Method: single_E
  * Description: 
  * ------------------------------------------------------------------
  */
 signed short int
 Potts::single_E ( unsigned int i, unsigned int j ) {
+//	fprintf ( stderr, "ene\n" );
 	/* energy, temporary Sito ptr */
 	short unsigned int temp = 0;
 	Sito *xptr = *( x + i ) + j;
 
 	/* spin in site (i,j) */
-	spin s0 = Reticolo::S( *( (*xptr).nn ) );
+	spin s0 = (*xptr).s;
 
 	/* sweep over nearest neighbours */
-	for ( unsigned short int a = 0; a < 4; a ++ ) {
-//		printf( "spin: %u ", Reticolo::S( *( (*xptr).nn + a ) ) );
+	for ( unsigned short int a = 0; a < Reticolo::D2; a ++ )
 		if ( s0 == Reticolo::S( *( (*xptr).nn + a ) ) )
 			temp ++;
-	}
-//	printf( "\n" );
 
 	return (signed short) - temp;
 } /* -----  end of method Potts::single_E  ----- */
@@ -59,15 +83,15 @@ Potts::single_E ( unsigned int i, unsigned int j ) {
  * ------------------------------------------------------------------
  */
 signed short int
-Potts::delta_E ( const Sito *p, spin s_new ) {
+Potts::delta_E ( const Sito *xptr, spin s_new ) {
 	/* nearest neighbours in state s = 0,...,Q */
 	unsigned short int nn[Q] = {};
 	
 	/* sweep over nearest neighbours */
 	for ( unsigned short int a = 0; a < Reticolo::D2; a ++ )
-		( *( nn + Reticolo::S( *( (*p).nn + a ) ) ) ) ++;
+		( *( nn + Reticolo::S( *( (*xptr).nn + a ) ) ) ) ++;
 
-	return *( nn + (*p).s ) - *( nn + s_new );
+	return *( nn + (*xptr).s ) - *( nn + s_new );
 } /* -----  end of method Potts::delta_E  ----- */
 
 /*
@@ -79,9 +103,6 @@ Potts::delta_E ( const Sito *p, spin s_new ) {
  */
 void
 Potts::sweep ( void ) {
-	/* reset magnetization */
-//	Ms = 0;
-
 	register unsigned short int test;
 	register spin sn;
 
@@ -110,6 +131,155 @@ Potts::sweep ( void ) {
 
 	E = energy();
 } /* -----  end of method Potts::sweep  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Potts
+ *      Method: Sweep
+ * Description: Update using Swendsen-Wang multi-cluster algorithm
+ * ------------------------------------------------------------------
+ */
+void
+Potts::Sweep ( void ) {
+	/* ckd temporary pointer */
+	register bool *c = NULL;
+	register unsigned short int j;
+
+	/* reset magnetization (sweep, max) */
+//	Ms = Mm = (long int) 0;
+//	M2 = (unsigned long) 0;
+
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* assign temporary variable */
+		c = *( ckd + i );
+
+		for ( j = 0; j < L; j ++ ) {
+			/* if spin had not been visited yet */
+			if ( *( c ) == ckd_status )
+				Potts::cluster( i, j );
+
+			/* update pointer */
+			c ++;
+		}
+	}
+
+	/* auxiliary variable to avoid resetting ckd[][] */
+	ckd_status = !( ckd_status );
+
+	/* update energy */
+	E = Potts::energy();
+	/* uncomment this if you dont't update it in 'cluster' method */
+//	Ms = Ising::magnetization();
+} /* -----  end of method Potts::Sweep  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Potts
+ *      Method: cluster
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+unsigned long int
+Potts::cluster ( unsigned int i, unsigned int j ) {
+	/* new spin value (flip = { 0,1,...,Q }) */
+	spin flip = (spin) ( rand() % Q );
+
+
+	/*---------------------------------------------------------------
+	 *  INITIALIZE CLUSTER SCTRUCTURES
+	 *-------------------------------------------------------------*/
+
+	/* assign initial cluster site */
+	**stack = i;
+	*( *stack + 1 ) = j;
+
+	/* update 'ckd' */
+	*( *( ckd + i ) + j ) = !*( *( ckd + i ) + j );
+
+	/* first free element of the stack */
+	tail = 1;
+
+	/* nearest neighbours counter */
+	unsigned short int a;
+	/* position indexes */
+	unsigned short int n, m;
+	/* cluster size */
+	unsigned long int size = (long int) 0;
+
+	/* temporary pointers */
+	unsigned short int *sptr = NULL;
+	unsigned short int *nnptr = NULL;
+	long double *magptr = NULL;
+	bool *cptr = NULL;
+	Sito *xptr = NULL;
+
+	/*---------------------------------------------------------------
+	 *  CREATE CLUSTER
+	 *-------------------------------------------------------------*/
+
+	do {
+		/* take/free last stack element */
+		sptr = *( stack + ( -- tail ) );
+		i = *( sptr ); j = *( ++ sptr );
+
+		/* assign (spin) temporary pointer */
+		xptr = *( x + i ) + j;
+
+		/* assign temporary magnetization pointer */
+		magptr = *( mag + (*xptr).s );
+
+		/* sweep over nearest neighbours */
+		for ( a = 0; a < 4; a ++ ) {
+			/* assign nearest neighbour coordinate */
+			nnptr = *( ( *xptr ).nn + a );
+
+			/* assign neighbours coordinates */
+			n = (unsigned) *( nnptr );
+			m = (unsigned) *( ++ nnptr );
+
+			/* assign (check bool) temporary variable */
+			cptr = *( ckd + n ) + m;
+
+			/* if spin does not belong to a cluster */
+			if ( *cptr == ckd_status ) {
+
+				/* if spin are parallel */
+				if ( ( *xptr ).s == ( *( *( x + n ) + m ) ).s ) {
+
+					/* check wether activate bond or not */
+					if ( (long double) rand() / RAND_MAX <= EB ) {
+						/* assign (stack) temporary pinter */
+						sptr = *( stack + tail );
+
+						/* push ( n, m ) into stack */
+						*( sptr ) = n; *( ++ sptr ) = m;
+
+						/* increase 'tail' */
+						tail ++;
+
+						/* update 'ckd' */
+						*cptr = !( *cptr );
+					}
+				}
+			}
+		}
+
+		/* update size */
+		size ++;
+
+		/* update magnetization (sweep) */
+		*( Ms ) += *magptr;
+		*( Ms + 1 ) += *( ++ magptr );
+
+		/* flip spin */
+		( *xptr ).s = flip;
+	} while ( tail != head );
+
+	/* update magnetization (max) */
+//	Mm = ( size > Mm ? size : Mm );
+
+	return size * size;
+} /* -----  end of method Potts::cluster  ----- */
 
 /*
  * ------------------------------------------------------------------

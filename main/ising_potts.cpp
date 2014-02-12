@@ -25,12 +25,14 @@
 #include <errno.h>
 
 #include "reticolo.h"
+#include "ising.h"
+#include "potts.h"
 #include "colors.h"
 #include "info_time.h"
 #include "round.h"
 
-#define LIFE 20000
-#define TERM 500
+#define LIFE 10000
+#define TERM 2000
 
 /* 
  * ===  FUNCTION  ======================================================================
@@ -44,30 +46,39 @@ main ( void ) {
 
 	unsigned int start = clock();
 
-	/* build up system */
-	Reticolo r;
+	Potts R;
 
-	/* termalyze system */
-	for ( unsigned short int j = 0; j < TERM; j ++ ) {
-//		fprintf( stderr, "#Sweep %u\n\n", j );
-		r.Sweep();
+	/*---------------------------------------------------------------
+	 *  TERMALIZATION
+	 *-------------------------------------------------------------*/
+	const long double *Ms = NULL;
+
+	register unsigned j;
+	for ( j = 0; j < TERM; j ++ ) {
+		R.Sweep();
+//		fprintf( stdout, "%.16g\n", (double) R.get_E() / R.L2 );
+
+		/* get magnetization */
+		Ms = R.get_Ms();
+		fprintf( stdout, "%.16Lg\t%.16Lg\n", (long double) *( Ms ) / R.L2, (long double) R.get_Ms()[1] / R.L2 );
 	}
 
-//	r.print_lattice();
-
-	r.correlator();
-	r.print_correlator();
+	print_exe_time( start, __func__ );
 
 	return 0;
 
-	double e = (double) 0, ee = (double) 0;
-	double tmp;
+	/* build up system */
+	Ising r;
 
-	double ms = (double) 0, mse = (double) 0;
-	double tmps;
-	
-	double mm = (double) 0, mme = (double) 0;
-	double tmpm;
+	/*---------------------------------------------------------------
+	 *  TERMALIZATION
+	 *-------------------------------------------------------------*/
+	for ( unsigned short int j = 0; j < TERM; j ++ )
+		r.sweep();
+
+	/*---------------------------------------------------------------
+	 *  MEASURES
+	 *-------------------------------------------------------------*/
 
 	/* output-file name */
 	char energy_file_name[] = "energia.dat";
@@ -79,51 +90,75 @@ main ( void ) {
 	}
 
 	/* output-file name */
-	char mag_file_name[] = "magnetizzazione.dat";
-	FILE *mag = fopen( mag_file_name, "w" );
-	if ( mag == NULL ) {
+	char mags_file_name[] = "mag_sweep.dat";
+	FILE *mags = fopen( mags_file_name, "w" );
+	if ( mags == NULL ) {
 		fprintf ( stderr, "couldn't open file '%s'; %s\n",
-				mag_file_name, strerror(errno) );
+				mags_file_name, strerror(errno) );
 		exit (EXIT_FAILURE);
 	}
 
-	char su_file_name[] = "suscettività.dat"; /* output-file name */
-	FILE *su = fopen( su_file_name, "w" );
-	if ( su == NULL ) {
+	/* output-file name */
+	char magsa_file_name[] = "mag_sweep_abs.dat";
+	FILE *magsa = fopen( magsa_file_name, "w" );
+	if ( magsa == NULL ) {
 		fprintf ( stderr, "couldn't open file '%s'; %s\n",
-				su_file_name, strerror(errno) );
+				magsa_file_name, strerror(errno) );
+		exit (EXIT_FAILURE);
+	}
+
+	/* output-file name */
+//	char magc_file_name[] = "mag_cluster.dat";
+//	FILE *magc = fopen( magc_file_name, "w" );
+//	if ( magc == NULL ) {
+//		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+//				magc_file_name, strerror(errno) );
+//		exit (EXIT_FAILURE);
+//	}
+
+	/* output-file name */
+//	char su_file_name[] = "sus.dat";
+//	FILE *su = fopen( su_file_name, "w" );
+//	if ( su == NULL ) {
+//		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+//				su_file_name, strerror(errno) );
+//		exit (EXIT_FAILURE);
+//	}
+
+	/* output-file name */
+	char corr_file_name[] = "corr.dat";
+	FILE *corr = fopen( corr_file_name, "w" );
+	if ( corr == NULL ) {
+		fprintf ( stderr, "couldn't open file '%s'; %s\n",
+				corr_file_name, strerror(errno) );
 		exit (EXIT_FAILURE);
 	}
 
 	float pct = (float) 0;
 	for ( unsigned int j = 0; j < LIFE; j ++ ) {
-		/*-------------------------------------------------------------------
+		/*-----------------------------------------------------------
 		 *  PROGRESS BAR
-		 *-----------------------------------------------------------------*/
+		 *---------------------------------------------------------*/
 		pct = (double) 100 * ( (double) j / LIFE );
-		/* stampo la percentuale */
+		/* print percentage */
 		fprintf( stderr, "Step n. %u of %u. Completed %.2f %%\r", j, LIFE, pct );
 
+		/* evolve system */
+		r.sweep();
+
 		/* magnetization (sweep) */
-		tmps = (double) fabs( r.get_Ms() ) / r.L2;
-		tmpm = (double) r.get_Mm() / r.L2;
-		fprintf( mag, "%.16g\t%.16g\n", tmps, tmpm );
-		fprintf( su, "%.16g\n", r.get_M2() / r.L2 );
-
-		ms += tmps;
-		mse += tmps * tmps;
-
-		mm += tmpm;
-		mme += tmpm * tmpm;
-
+		fprintf( mags, "%.16g\n", (double) r.get_Ms() / r.L2 );
+		/* magnetization (sweep) abs */
+		fprintf( magsa, "%.16g\n", (double) fabsl( r.get_Ms() ) / r.L2 );
+		/* magnetization (cluster) */
+//		fprintf( magc, "%.16g\n", (double) r.get_Mm() / r.L2 );
+		/* susceptivity */
+//		fprintf( su, "%.16g\n", (double) r.get_M2() / r.L2 );
 		/* energy */
-		tmp = (double) r.get_E() / r.L2;
-		fprintf( energy, "%g\n", tmp );
+		fprintf( energy, "%g\n", (double) r.get_E() / r.L2 );
 	
-		e += tmp;
-		ee += tmp * tmp;
-		
-		r.Sweep();
+		r.correlator();
+		r.print_correlator( corr );
 	}
 
 	if( fclose(energy) == EOF ) { /* close output file */
@@ -132,77 +167,33 @@ main ( void ) {
 		exit (EXIT_FAILURE);
 	}
 
-	if( fclose(mag) == EOF ) { /* close output file */
+	if( fclose(mags) == EOF ) { /* close output file */
 		fprintf ( stderr, "couldn't close file '%s'; %s\n",
-				mag_file_name, strerror(errno) );
+				mags_file_name, strerror(errno) );
 		exit (EXIT_FAILURE);
 	}
 
-	if( fclose(su) == EOF ) { /* close output file */
+//	if( fclose(su) == EOF ) { /* close output file */
+//		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+//				su_file_name, strerror(errno) );
+//		exit (EXIT_FAILURE);
+//	}
+//
+//	if( fclose(magc) == EOF ) { /* close output file */
+//		fprintf ( stderr, "couldn't close file '%s'; %s\n",
+//				magc_file_name, strerror(errno) );
+//		exit (EXIT_FAILURE);
+//	}
+
+	if( fclose(magsa) == EOF ) { /* close output file */
 		fprintf ( stderr, "couldn't close file '%s'; %s\n",
-				su_file_name, strerror(errno) );
+				magsa_file_name, strerror(errno) );
 		exit (EXIT_FAILURE);
 	}
 
-	/*-------------------------------------------------------------------
-	 *  ENERGY
-	 *-----------------------------------------------------------------*/
-	e /= (double) LIFE;
-	ee /= (double) LIFE;
-	ee -= e*e;
-
-	char ene_file_name[] = "energy_plot_c.dat"; /* output-file name */
-	FILE *ene = fopen( ene_file_name, "a" );
-
-	if ( ene == NULL ) {
-		fprintf ( stderr, "couldn't open file '%s'; %s\n",
-				ene_file_name, strerror(errno) );
-		exit (EXIT_FAILURE);
-	}
-	
-	fprintf( ene, "#B\tenergy\tSDOM\n");
-	fprintf( ene, "%g\t", (double) B );
-	round( e, sqrt( ee / LIFE), ene );
-	fprintf( ene, "\n" );
-
-	if( fclose(ene) == EOF ) { /* close output file */
+	if( fclose(corr) == EOF ) { /* close output file */
 		fprintf ( stderr, "couldn't close file '%s'; %s\n",
-				ene_file_name, strerror(errno) );
-		exit (EXIT_FAILURE);
-	}
-
-	/*-------------------------------------------------------------------
-	 *  MAGNETIZATION
-	 *-----------------------------------------------------------------*/
-	ms /= (double) LIFE;
-	mse /= (double) LIFE;
-	mse -= ms * ms;
-	
-	mm /= (double) LIFE;
-	mme /= (double) LIFE;
-	mme -= mm * mm;
-
-	char m_file_name[] = "magnetizzazione_plot.dat"; /* output-file name */
-	FILE *m = fopen( m_file_name, "a" );
-
-	if ( m == NULL ) {
-		fprintf ( stderr, "couldn't open file '%s'; %s\n",
-				m_file_name, strerror(errno) );
-		exit (EXIT_FAILURE);
-	}
-
-	fprintf( m, "#B\tm (sweep)\tSDOM\tm (max)\tSDOM\n" );
-	fprintf( m, "%g\t", (double) B );
-
-	round( ms, sqrt( mse / LIFE ), m );
-	fprintf( m, "\t" );
-	
-	round( mm, sqrt( mme / LIFE ), m );
-	fprintf( m, "\n" );
-
-	if( fclose(m) == EOF ) { /* close output file */
-		fprintf ( stderr, "couldn't close file '%s'; %s\n",
-				m_file_name, strerror(errno) );
+				corr_file_name, strerror(errno) );
 		exit (EXIT_FAILURE);
 	}
 
