@@ -19,7 +19,7 @@ MODULES	= $(COMMON)
 #MODULES += particella part_soffici # part_libere
 
 # Ising/Potts model
-MODULES	+= reticolo ising # potts
+MODULES	+= reticolo ising potts
 
 .PHONY: all distclean clean
 
@@ -146,6 +146,9 @@ $(FIT): %: %.o round.o
 $(MISC): %: %.o
 	@echo -e "[`tput bold``tput setaf 6`$@`tput sgr0`] $(CXX) -c `tput setaf 2`$^`tput sgr0` -o `tput bold`$@`tput sgr0` $(CXXFLAGS)"
 	@$(CXX) $^ -o $@ $(CXXFLAGS)
+
+cut: cut.o round.o
+	$(CXX) $^ -o $@ $(CXXFLAGS)
 
 # Produce executables
 mkxeq: $(MAIN)
