@@ -37,6 +37,9 @@ class Potts: public Reticolo {
 
 		/* magnetizazion coupple of values */
 		long double Ms[2] = {};
+
+		/* update magnetizazion checking the spin in xptr */
+		void update_Ms ( Sito *xptr );
 }; /* -----  end of class Potts  ----- */
 
 /*
@@ -50,5 +53,21 @@ inline const long double *
 Potts::get_Ms ( void ) {
 	return Ms;
 } /* -----  end of method Potts::get_Ms  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Potts
+ *      Method: update_Ms
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline void
+Potts::update_Ms ( Sito *xptr ) {
+	/* temporary magnetization pointers */
+	long double *a = Ms, *b = *( mag + ( *xptr ).s );
+
+	*( a ) += *( b );
+	*( ++a ) += *( ++ b);
+} /* -----  end of method Potts::update_Ms  ----- */
 
 #endif   /* ----- #ifndef potts_INC  ----- */

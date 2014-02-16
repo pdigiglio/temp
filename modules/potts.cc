@@ -59,7 +59,6 @@ Potts::Potts (void) {
  */
 signed short int
 Potts::single_E ( unsigned int i, unsigned int j ) {
-//	fprintf ( stderr, "ene\n" );
 	/* energy, temporary Sito ptr */
 	short unsigned int temp = 0;
 	Sito *xptr = *( x + i ) + j;
@@ -103,29 +102,34 @@ Potts::delta_E ( const Sito *xptr, spin s_new ) {
  */
 void
 Potts::sweep ( void ) {
-	register unsigned short int test;
+	/* reset magnetization */
+	*Ms = *( Ms + 1 ) = (long double) 0;
+
+	/* temporary variables for new state */
 	register spin sn;
 
+	/* site pointer */
 	register Sito *xptr = NULL;
-	register unsigned short int j;
+	/* control variable */
+	Sito *xstop = NULL;
+
 	for ( unsigned short int i = 0; i < L; i ++ ) {
 		/* assign row spin */
 		xptr = *( x + i );
+		/* assign cycle stop */
+		xstop = xptr + L;
 
-		for ( j = 0; j < L; j ++ ) {
+		for ( ; xptr != xstop; xptr ++ ) {
 			/* new state proposed */
-			test = rand() % 2;
-			sn = ( (*xptr).s + ( ++ test ) ) % Q;
+			sn = (*xptr).s + ( rand() % Reticolo::Q_1 );
+			sn = ( ++ sn ) % Q;
 
 			/* (maybe) change spin */
 			if ( (long double) rand() / RAND_MAX < expl( (long double) - B * Potts::delta_E( xptr, sn ) ) )
 				( *xptr ).s = sn;
 
 			/* update magnetization */
-//			Ms += ( *xptr ).s;
-
-			/* update (column) Sito index */
-			xptr ++;
+			Potts::update_Ms( xptr );
 		}
 	}
 
@@ -145,9 +149,8 @@ Potts::Sweep ( void ) {
 	register bool *c = NULL;
 	register unsigned short int j;
 
-	/* reset magnetization (sweep, max) */
-//	Ms = Mm = (long int) 0;
-//	M2 = (unsigned long) 0;
+	/* reset magnetization */
+	*( Ms ) = *( Ms + 1 ) = (long double) 0;
 
 	for ( unsigned short int i = 0; i < L; i ++ ) {
 		/* assign temporary variable */
@@ -168,8 +171,6 @@ Potts::Sweep ( void ) {
 
 	/* update energy */
 	E = Potts::energy();
-	/* uncomment this if you dont't update it in 'cluster' method */
-//	Ms = Ising::magnetization();
 } /* -----  end of method Potts::Sweep  ----- */
 
 /*
@@ -194,23 +195,27 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 	*( *stack + 1 ) = j;
 
 	/* update 'ckd' */
-	*( *( ckd + i ) + j ) = !*( *( ckd + i ) + j );
+	bool *cptr = *( ckd + i ) + j;
+	*cptr= !( *cptr );
 
 	/* first free element of the stack */
 	tail = 1;
+
+
+	/*---------------------------------------------------------------
+	 *  AUXILIARY VARIABLES
+	 *-------------------------------------------------------------*/
 
 	/* nearest neighbours counter */
 	unsigned short int a;
 	/* position indexes */
 	unsigned short int n, m;
 	/* cluster size */
-	unsigned long int size = (long int) 0;
+//	unsigned long int size = (long int) 0;
 
 	/* temporary pointers */
 	unsigned short int *sptr = NULL;
 	unsigned short int *nnptr = NULL;
-	long double *magptr = NULL;
-	bool *cptr = NULL;
 	Sito *xptr = NULL;
 
 	/*---------------------------------------------------------------
@@ -224,9 +229,6 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 
 		/* assign (spin) temporary pointer */
 		xptr = *( x + i ) + j;
-
-		/* assign temporary magnetization pointer */
-		magptr = *( mag + (*xptr).s );
 
 		/* sweep over nearest neighbours */
 		for ( a = 0; a < 4; a ++ ) {
@@ -247,7 +249,7 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 				if ( ( *xptr ).s == ( *( *( x + n ) + m ) ).s ) {
 
 					/* check wether activate bond or not */
-					if ( (long double) rand() / RAND_MAX <= EB ) {
+					if ( (long double) rand() / RAND_MAX <= Reticolo::EB ) {
 						/* assign (stack) temporary pinter */
 						sptr = *( stack + tail );
 
@@ -265,11 +267,10 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 		}
 
 		/* update size */
-		size ++;
+//		size ++;
 
 		/* update magnetization (sweep) */
-		*( Ms ) += *magptr;
-		*( Ms + 1 ) += *( ++ magptr );
+		Potts::update_Ms( xptr );
 
 		/* flip spin */
 		( *xptr ).s = flip;
@@ -278,7 +279,7 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 	/* update magnetization (max) */
 //	Mm = ( size > Mm ? size : Mm );
 
-	return size * size;
+	return 0; // size * size;
 } /* -----  end of method Potts::cluster  ----- */
 
 /*
