@@ -30,9 +30,12 @@ class Ising: public Reticolo {
 		/* current magnetization */
 		long unsigned int M2;
 
-		/* magnetizations (max cluster size, random, sweep) */
+		/* magnetizations (max cluster size, sweep) */
 		unsigned long int Mm = 0;
 		long int Ms = 0;
+
+		/* return energy of site (i,j) */
+		short int single_E ( unsigned int i, unsigned int j );
 
 		/* create one cluster */
 		unsigned long int cluster ( unsigned int i, unsigned int j );

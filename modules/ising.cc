@@ -89,7 +89,6 @@ Ising::Sweep ( void ) {
 
 	/* reset magnetization (sweep, max) */
 	Ms = Mm = (long int) 0;
-	M2 = (unsigned long) 0;
 
 	for ( unsigned short int i = 0; i < L; i ++ ) {
 		/* assign temporary variable */
@@ -98,7 +97,7 @@ Ising::Sweep ( void ) {
 		for ( j = 0; j < L; j ++ ) {
 			/* if spin had not been visited yet */
 			if ( *( c ) == ckd_status )
-				M2 += Ising::cluster( i, j );
+				Ising::cluster( i, j );
 
 			/* update pointer */
 			c ++;
@@ -245,3 +244,26 @@ Ising::magnetization ( void ) {
 
 	return Ms;
 } /* -----  end of method Ising::magnetization  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Ising
+ *      Method: single_E
+ * Description: evaluate single-spin energy
+ * ------------------------------------------------------------------
+ */
+short int
+Ising::single_E ( unsigned int i, unsigned int j ) {
+	/* energy, temporary Sito ptr */
+	short int temp = 0;
+	Sito *xptr = *( x + i ) + j;
+
+	/* sweep over nearest neighbours */
+	for ( unsigned short int a = 0; a < 4; a ++ )
+		temp += Reticolo::S( *( (*xptr).nn + a ) );
+
+	/* multiply by (i,j)-spin */
+	temp *= ( *xptr ).s;
+
+	return - temp;
+} /* -----  end of method Ising::single_E  ----- */
