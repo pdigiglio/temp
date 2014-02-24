@@ -31,7 +31,7 @@ clean:
 	@-rm --recursive --force --verbose *.o *.d
 
 distclean: clean
-	@-rm --recursive --force --verbose $(MAIN) $(ANALISI) $(FIT) $(MISC)
+	@-rm --recursive --force --verbose $(MAIN) $(ANALISI) $(FIT) $(MISC) cut
 
 # Directory for modules and headers
 MDIR	= ../modules
