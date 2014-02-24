@@ -31,15 +31,14 @@
  * ------------------------------------------------------------------
  */
 Reticolo::Reticolo (void) {
-	/* assign spins */
 	register Sito *xptr = NULL;
 	register unsigned short int a;
 
 	const signed short int *sptr = NULL;
 	unsigned short int *nn = NULL;
 
-	register unsigned int j;
-	for ( unsigned int i = 0; i < L; i ++ ) {
+	register unsigned short int j;
+	for ( unsigned short int i = 0; i < L; i ++ ) {
 		/* assign temporary pointer */
 		xptr = *( x + i );
 
@@ -79,29 +78,6 @@ Reticolo::Reticolo (void) {
 Reticolo::~Reticolo (void) {
 	fprintf( stderr, "[Reticolo: %s]\n", __func__ );
 } /* -----  end of method Reticolo::~Reticolo (dtor)  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Reticolo
- *      Method: single_E
- * Description: evaluate single-spin energy
- * ------------------------------------------------------------------
- */
-short int
-Reticolo::single_E ( unsigned int i, unsigned int j ) {
-	/* energy, temporary Sito ptr */
-	short int temp = 0;
-	Sito *xptr = *( x + i ) + j;
-
-	/* sweep over nearest neighbours */
-	for ( unsigned short int a = 0; a < 4; a ++ )
-		temp += Reticolo::S( *( (*xptr).nn + a ) );
-
-	/* multiply by (i,j)-spin */
-	temp *= ( *xptr ).s;
-
-	return - temp;
-} /* -----  end of method Reticolo::single_E  ----- */
 
 /*
  * ------------------------------------------------------------------
@@ -233,16 +209,43 @@ Reticolo::print_lattice ( void ) {
 /*
  * ------------------------------------------------------------------
  *       Class: Reticolo
+ *      Method: single_E
+ * Description: evaluate single-spin energy
+ * ------------------------------------------------------------------
+ */
+short int
+Reticolo::single_E ( unsigned int i, unsigned int j ) {
+	/* energy, temporary Sito ptr */
+	short int temp = 0;
+	Sito *xptr = *( x + i ) + j;
+
+	/* sweep over nearest neighbours */
+	for ( unsigned short int a = 0; a < 4; a ++ )
+		temp += Reticolo::S( *( (*xptr).nn + a ) );
+
+	/* multiply by (i,j)-spin */
+	temp *= ( *xptr ).s;
+
+	return - temp;
+} /* -----  end of method Reticolo::single_E  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
  *      Method: print_correlator
  * Description: 
  * ------------------------------------------------------------------
  */
 void
 Reticolo::print_correlator ( FILE *stream ) {
+	/* normalization */
 	double norm = *corr;
-	for ( unsigned short int i = 0; i < L / 2; i ++ ) {
-		fprintf( stream, "%.15g\t", (double) *( corr + i ) / norm );
-	}
+
+	/* pointer/counter stopper */
+	double *stop = corr + L / 2;
+	for ( register double *cptr = corr; cptr != stop; cptr ++ )
+		fprintf( stream, "%.15g\t", (double) *cptr / norm );
+
 	fprintf( stream, "\n" );
 } /* -----  end of method Reticolo::print_correlator  ----- */
 

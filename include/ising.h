@@ -35,7 +35,7 @@ class Ising: public Reticolo {
 		long int Ms = 0;
 
 		/* return energy of site (i,j) */
-		short int single_E ( unsigned int i, unsigned int j );
+//		short int single_E ( unsigned int i, unsigned int j );
 
 		/* create one cluster */
 		unsigned long int cluster ( unsigned int i, unsigned int j );

@@ -16,7 +16,7 @@
 #define Q	3
 
 /* short-cut to extend do Potts model */
-typedef short int spin;
+typedef unsigned short int spin;
 
 /*
  * ==================================================================
@@ -29,6 +29,7 @@ class Reticolo {
 		Reticolo (void); /* ctor */
 		virtual ~Reticolo (void); /* dtor */
 
+		/* return value of 'Reticolo::E' */
 		double get_E ( void );
 
 		/* evaluate correlator */
@@ -41,17 +42,40 @@ class Reticolo {
 		const long double EB = (long double) 1 - expl( (long double) - 2 * B );
 		static const long int L2 = L * L;
 		static const short unsigned int D2 = 2 * D;
+		static const short unsigned int Q_1 = (short unsigned) Q - 1;
 		
 	protected:
+
 		struct sito {
 			/* nearest neighbours */
 			unsigned short int nn[2 * D][D];
 			/* spin value */
 			spin s;
 		} x[L][L];
-
-		
 		typedef struct sito Sito;
+
+		/* auxiliary array to check nearest neighbours */
+		const signed short int s[2 * D][D] = {
+			{ 0, 1 }, { 1, 0 },
+			{ 0, -1 }, { -1, 0 }
+		};
+
+		/* controls if a site has been already checked */
+		bool ckd[L][L] = {};
+		bool ckd_status = (bool) 0;
+
+		/* cluster sites stack */
+		const unsigned int head = 0;
+		unsigned int tail = 0;
+		/* stack contains at most L * L elements */
+		unsigned short int stack[L2][D];
+
+		/* correlator */
+		double corr[L] = {};
+		
+		/* energy initialized in ctor */
+		long int E;
+
 
 		/* return energy of site (i,j) */
 		virtual short int single_E ( unsigned int i, unsigned int j );
@@ -59,37 +83,8 @@ class Reticolo {
 		/* evaluate lattice energy */
 		virtual long int energy ( void );
 
-		/* controls if a site has been already checked */
-		bool ckd[L][L] = {};
-		bool ckd_status = (bool) 0;
-
 		/* function that returns a random initial value for site */
-		spin rand_init_val ( void );
-
-		/* correlator */
-		double corr[L] = {};
-		
-		/* auxiliary array to check nearest neighbours */
-		const signed short int s[2 * D][D] = {
-			{ 0, 1 },
-			{ 1, 0 },
-			{ 0, -1 },
-			{ -1, 0 }
-		};
-
-		/* cluster sites stack */
-		const unsigned int head = 0;
-		unsigned int tail = 0;
-
-		/* stack contains at most L * L elements */
-		unsigned short int stack[L2][D];
-
-		/* number of sweeps */
-		unsigned int t = 0;
-
-		/* energy initialized in ctor */
-		long int E;
-
+		virtual spin rand_init_val ( void );
 		/* returns spin in *pos */
 		spin S ( const unsigned short int *p = NULL );
 }; /* -----  end of class Reticolo  ----- */
@@ -127,8 +122,8 @@ Reticolo::S ( const unsigned short int *p ) {
  */
 inline spin
 Reticolo::rand_init_val ( void ) {
-	return (spin) ( 2 * ( rand() % 2 ) - 1); // Ising
-//	return (spin) ( rand() % (unsigned) Q ); // Potts or higher
+//	return (spin) ( 2 * ( rand() % 2 ) - 1); // Ising
+	return (spin) ( rand() % (unsigned) Q ); // Potts or higher
 } /* -----  end of method Reticolo::rand_init_val  ----- */
 
 #endif   /* ----- #ifndef reticolo_INC  ----- */

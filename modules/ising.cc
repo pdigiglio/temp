@@ -109,6 +109,7 @@ Ising::Sweep ( void ) {
 
 	/* update energy */
 	E = Reticolo::energy();
+
 	/* uncomment this if you dont't update it in 'cluster' method */
 //	Ms = Ising::magnetization();
 } /* -----  end of method Ising::Sweep  ----- */
@@ -245,25 +246,3 @@ Ising::magnetization ( void ) {
 	return Ms;
 } /* -----  end of method Ising::magnetization  ----- */
 
-/*
- * ------------------------------------------------------------------
- *       Class: Ising
- *      Method: single_E
- * Description: evaluate single-spin energy
- * ------------------------------------------------------------------
- */
-short int
-Ising::single_E ( unsigned int i, unsigned int j ) {
-	/* energy, temporary Sito ptr */
-	short int temp = 0;
-	Sito *xptr = *( x + i ) + j;
-
-	/* sweep over nearest neighbours */
-	for ( unsigned short int a = 0; a < 4; a ++ )
-		temp += Reticolo::S( *( (*xptr).nn + a ) );
-
-	/* multiply by (i,j)-spin */
-	temp *= ( *xptr ).s;
-
-	return - temp;
-} /* -----  end of method Ising::single_E  ----- */
