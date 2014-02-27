@@ -122,8 +122,7 @@ $(MAIN): %: $(OBJS) Makefile
 		`tput setaf 5`` gcc -march=native -Q --help=target | grep --text march | cut -f3 ``tput sgr0`
 	@ echo -e "[`tput setaf 6`info`tput sgr0`] Architettura selezionata:\t" `tput setaf 5`$(MARCH)`tput sgr0`
 	@ echo -e "[`tput bold``tput setaf 6`$@`tput sgr0`]" \
-		"$(CXX) -o `tput bold`$@`tput sgr0` `tput setaf 2`$(OBJS)`tput sgr0`" \
-		"$(CXXFLAGS)$(INCPATH) $(LDFLAGS)\n"
+		"$(CXX) -o `tput bold`$@`tput sgr0` `tput setaf 2`$(OBJS)`tput sgr0` $(CXXFLAGS)\n"
 	@$(CXX) $(OBJS) -o $@ $(CXXFLAGS)
 
 $(ANALISI): %: %.o round.o
