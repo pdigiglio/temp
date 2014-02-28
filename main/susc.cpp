@@ -41,7 +41,7 @@ main ( int argc, char *argv[] ) {
 		if ( argc < 2 )
 			fprintf( stderr, "Too few cmd line arguments!\n" );
 		else if ( argc > 2 )
-			fprintf( stderr, "Too few cmd line arguments!\n" );
+			fprintf( stderr, "Too much cmd line arguments!\n" );
 
 		exit( EXIT_FAILURE );	
 	}
