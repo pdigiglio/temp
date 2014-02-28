@@ -83,8 +83,6 @@ class Reticolo {
 		/* evaluate lattice energy */
 		virtual long int energy ( void );
 
-		/* function that returns a random initial value for site */
-		virtual spin rand_init_val ( void );
 		/* returns spin in *pos */
 		spin S ( const unsigned short int *p = NULL );
 }; /* -----  end of class Reticolo  ----- */
@@ -112,18 +110,5 @@ inline spin
 Reticolo::S ( const unsigned short int *p ) {
 	return (*( *( x + *p ) + *( ++ p ) )).s;
 } /* -----  end of method Reticolo::S  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Reticolo
- *      Method: rand_init_val
- * Description: 
- * ------------------------------------------------------------------
- */
-inline spin
-Reticolo::rand_init_val ( void ) {
-	return (spin) ( 2 * ( rand() % 2 ) - 1 ); // Ising
-//	return (spin) ( rand() % (unsigned) Q ); // Potts or higher
-} /* -----  end of method Reticolo::rand_init_val  ----- */
 
 #endif   /* ----- #ifndef reticolo_INC  ----- */
