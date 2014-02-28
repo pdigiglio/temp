@@ -40,6 +40,7 @@ class Reticolo {
 
 		/* useful constants (not to be evaluated at every cycle) */
 		const long double EB = (long double) 1 - expl( (long double) - 2 * B );
+	
 		static const long int L2 = L * L;
 		static const short unsigned int D2 = 2 * D;
 		static const short unsigned int Q_1 = (short unsigned) Q - 1;
@@ -74,8 +75,7 @@ class Reticolo {
 		double corr[L] = {};
 		
 		/* energy initialized in ctor */
-		long int E;
-
+		long int E = (long int) 0;
 
 		/* return energy of site (i,j) */
 		virtual short int single_E ( unsigned int i, unsigned int j );
@@ -122,8 +122,8 @@ Reticolo::S ( const unsigned short int *p ) {
  */
 inline spin
 Reticolo::rand_init_val ( void ) {
-//	return (spin) ( 2 * ( rand() % 2 ) - 1); // Ising
-	return (spin) ( rand() % (unsigned) Q ); // Potts or higher
+	return (spin) ( 2 * ( rand() % 2 ) - 1 ); // Ising
+//	return (spin) ( rand() % (unsigned) Q ); // Potts or higher
 } /* -----  end of method Reticolo::rand_init_val  ----- */
 
 #endif   /* ----- #ifndef reticolo_INC  ----- */

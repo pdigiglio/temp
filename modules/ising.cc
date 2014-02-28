@@ -33,6 +33,39 @@
  * ------------------------------------------------------------------
  */
 Ising::Ising (void) {
+	register Sito *xptr = NULL;
+	register unsigned short int a;
+
+	const signed short int *sptr = NULL;
+	unsigned short int *nn = NULL;
+
+	register unsigned short int j;
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* assign temporary pointer */
+		xptr = *( x + i );
+
+		for ( j = 0; j < L; j ++ ) {
+			/* assign spin */
+			( *xptr ).s = (spin) ( 2 * ( rand() % 2 ) - 1 );
+
+			/* assign nearest neighbours */
+			for ( a = 0; a < 4; a ++ ) {	
+				/* assign (displacement) temporary pointer */
+				sptr = *( s + a );
+				nn = *( ( *xptr ).nn + a );
+
+				/* assign neighbours coordinates */
+				*nn = (unsigned) ( (signed) L + i + *( sptr ) ) % L;
+				*( ++ nn ) = (unsigned) ( (signed) L + j + *( ++ sptr ) ) % L;
+			}
+
+			/* update pointer Sito */
+			xptr ++;
+		}
+	}
+
+	/* assign energy */
+	E = Ising::energy();
 } /* -----  end of method Ising::Ising (def. ctor)  ----- */
 
 /*
@@ -88,7 +121,8 @@ Ising::Sweep ( void ) {
 	register unsigned short int j;
 
 	/* reset magnetization (sweep, max) */
-	Ms = Mm = (long int) 0;
+	Ms = (long int) 0;
+	Mm = (long int) 0;
 
 	for ( unsigned short int i = 0; i < L; i ++ ) {
 		/* assign temporary variable */

@@ -38,6 +38,8 @@ class Potts: public Reticolo {
 		/* magnetizazion coupple of values */
 		long double Ms[2] = {};
 
+		inline spin rand_init_val ( void );
+
 		/* update magnetizazion checking the spin in xptr */
 		void update_Ms ( Sito *xptr );
 }; /* -----  end of class Potts  ----- */
@@ -70,4 +72,15 @@ Potts::update_Ms ( Sito *xptr ) {
 	*( ++a ) += *( ++ b);
 } /* -----  end of method Potts::update_Ms  ----- */
 
+/*
+ * ------------------------------------------------------------------
+ *       Class: Potts
+ *      Method: rand_init_val
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline spin
+Potts::rand_init_val ( void ) {
+	return (spin) ( rand() % (unsigned) Q ); // Potts or higher
+} /* -----  end of method Potts::rand_init_val  ----- */
 #endif   /* ----- #ifndef potts_INC  ----- */

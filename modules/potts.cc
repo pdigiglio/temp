@@ -32,6 +32,48 @@
  * ------------------------------------------------------------------
  */
 Potts::Potts (void) {
+	/*---------------------------------------------------------------
+	 *  INITIALIZE LATTICE
+	 *-------------------------------------------------------------*/
+	register Sito *xptr = NULL;
+	register unsigned short int a;
+
+	const signed short int *sptr = NULL;
+	unsigned short int *nn = NULL;
+
+	register unsigned short int j;
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* assign temporary pointer */
+		xptr = *( x + i );
+
+		for ( j = 0; j < L; j ++ ) {
+			/* assign spin */
+			( *xptr ).s = Potts::rand_init_val();
+
+			/* assign nearest neighbours */
+			for ( a = 0; a < 4; a ++ ) {	
+				/* assign (displacement) temporary pointer */
+				sptr = *( s + a );
+				nn = *( ( *xptr ).nn + a );
+
+				/* assign neighbours coordinates */
+				*nn = (unsigned) ( (signed) L + i + *( sptr ) ) % L;
+				*( ++ nn ) = (unsigned) ( (signed) L + j + *( ++ sptr ) ) % L;
+			}
+
+			/* update pointer Sito */
+			xptr ++;
+		}
+	}
+
+	
+	/*---------------------------------------------------------------
+	 *  INITIALIZE ENERGY AND MAGNETIZATION
+	 *-------------------------------------------------------------*/
+
+	/* assign energy */
+	E = Potts::energy();
+	
 	/* temporary pointer */
 	long double *mptr = NULL;
 	/* temporary angle */
@@ -48,6 +90,8 @@ Potts::Potts (void) {
 		*mptr = cosl( theta );
 		*( ++ mptr ) = sinl ( theta );
 	}
+
+	fprintf( stderr, "[Potts: %s]\n", __func__ );
 } /* -----  end of method Potts::Potts (def. ctor)  ----- */
 
 /*
