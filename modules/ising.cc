@@ -32,7 +32,7 @@
  * Description: [default ctor]
  * ------------------------------------------------------------------
  */
-Ising::Ising (void) {
+Ising::Ising ( void ) {
 	register Sito *xptr = NULL;
 	register unsigned short int a;
 
@@ -66,6 +66,8 @@ Ising::Ising (void) {
 
 	/* assign energy */
 	E = Ising::energy();
+
+	fprintf( stderr, "[Potts: %s]\n", __func__ );
 } /* -----  end of method Ising::Ising (def. ctor)  ----- */
 
 /*
@@ -104,7 +106,7 @@ Ising::sweep ( void ) {
 		}
 	}
 
-	E = energy();
+	E = Ising::energy();
 } /* -----  end of method Ising::sweep  ----- */
 
 /*
@@ -142,7 +144,7 @@ Ising::Sweep ( void ) {
 	ckd_status = !( ckd_status );
 
 	/* update energy */
-	E = Reticolo::energy();
+	E = Ising::energy();
 
 	/* uncomment this if you dont't update it in 'cluster' method */
 //	Ms = Ising::magnetization();
@@ -169,13 +171,16 @@ Ising::cluster ( unsigned int i, unsigned int j ) {
 	*( *stack + 1 ) = j;
 
 	/* update 'ckd' */
-	*( *( ckd + i ) + j ) = !*( *( ckd + i ) + j );
+	bool *cptr = *( ckd + i ) + j;
+	*( cptr ) = !*( cptr );
 
 	/* first free element of the stack */
 	tail = 1;
 
-//	fprintf( stderr, "\n" );
 
+	/*---------------------------------------------------------------
+	 *  CONSTRUCT CLUSTER
+	 *-------------------------------------------------------------*/
 	/* counter */
 	unsigned short int a;
 	/* indexes */
@@ -186,7 +191,6 @@ Ising::cluster ( unsigned int i, unsigned int j ) {
 	/* temporary pointers */
 	unsigned short int *sptr = NULL;
 	unsigned short int *nnptr = NULL;
-	bool *cptr = NULL;
 	Sito *xptr = NULL;
 
 	do {
@@ -196,8 +200,6 @@ Ising::cluster ( unsigned int i, unsigned int j ) {
 
 		/* assign (spin) temporary pointer */
 		xptr = *( x + i ) + j;
-
-//		fprintf( stdout, "(%u, %u)\n", i, j );
 
 		/* sweep over nearest neighbours */
 		for ( a = 0; a < 4; a ++ ) {
@@ -219,18 +221,14 @@ Ising::cluster ( unsigned int i, unsigned int j ) {
 
 					/* check wether activate bond or not */
 					if ( (long double) rand() / RAND_MAX <= EB ) {
-						/* assign (stack) temporary pinter */
+						/* assign (stack) temporary ptr */
 						sptr = *( stack + tail );
 
 						/* push ( n, m ) into stack */
 						*( sptr ) = n; *( ++ sptr ) = m;
 
-						/* TikZ */
-//						fprintf( stderr, "\\draw (%u, %u) -- (%u, %u);\n", i, j, n, m );
-
-						/* increase 'tail' */
+						/* increase tail */
 						tail ++;
-
 						/* update 'ckd' */
 						*cptr = !( *cptr );
 					}
@@ -266,17 +264,65 @@ Ising::magnetization ( void ) {
 	Ms = (long int) 0;
 
 	register Sito *xptr = NULL;
-	register unsigned short int j;
+	Sito *stop = NULL;
 	for ( unsigned short int i = 0; i < L; i ++ ) {
-		/* assign temporary pointer */
-		xptr = *( x + i );
+		/* assign (stop) temporary pointer */
+		stop = *( x + i ) + L;
 
-		for ( j = 0; j < L; j ++ ) {
+		for ( xptr = *( x + i ); xptr != stop; xptr ++ )
 			Ms += (long int) ( *xptr ).s;
-			xptr ++;
-		}
 	}
 
 	return Ms;
 } /* -----  end of method Ising::magnetization  ----- */
 
+/*
+ * ------------------------------------------------------------------
+ *       Class: Ising
+ *      Method: energy
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+long int
+Ising::energy ( void ) {
+	/* energy temporary variable */
+	long int ene = 0;
+
+	register short int j;
+	/* cycle over even sites only */
+	short int i1 = 1;
+	for ( unsigned short int i = 0; i < L; i += 2 ) {
+		for ( j = 0; j < L; j ++ ) {
+			ene += Ising::single_E( i, j );
+			/* translater lattice */
+			ene += Ising::single_E( i1, ++ j );
+		}
+
+		i1 += 2;
+	}
+
+	return ene;
+} /* -----  end of method Ising::energy  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Ising
+ *      Method: single_E
+ * Description: evaluate single-spin energy
+ * ------------------------------------------------------------------
+ */
+short int
+Ising::single_E ( unsigned int i, unsigned int j ) {
+	/* energy, temporary Sito ptr */
+	short int temp = 0;
+	Sito *xptr = *( x + i ) + j;
+
+	/* sweep over nearest neighbours */
+	for ( unsigned short int a = 0; a < 4; a ++ )
+		temp += Reticolo::S( *( (*xptr).nn + a ) );
+
+	/* multiply by (i,j)-spin */
+	temp *= ( *xptr ).s;
+
+	return - temp;
+} /* -----  end of method Ising::single_E  ----- */

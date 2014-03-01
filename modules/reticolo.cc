@@ -48,34 +48,6 @@ Reticolo::~Reticolo (void) {
 /*
  * ------------------------------------------------------------------
  *       Class: Reticolo
- *      Method: energy
- * Description: 
- * ------------------------------------------------------------------
- */
-long int
-Reticolo::energy ( void ) {
-	/* energy temporary variable */
-	long int ene = 0;
-
-	register short int j;
-	/* cycle over even sites only */
-	short int i1 = 1;
-	for ( unsigned short int i = 0; i < L; i += 2 ) {
-		for ( j = 0; j < L; j ++ ) {
-			ene += Reticolo::single_E( i, j );
-			/* translater lattice */
-			ene += Reticolo::single_E( i1, ++ j );
-		}
-
-		i1 += 2;
-	}
-
-	return ene;
-} /* -----  end of method Reticolo::energy  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Reticolo
  *      Method: correlator
  * Description: 
  * ------------------------------------------------------------------
@@ -84,6 +56,7 @@ void
 Reticolo::correlator ( void ) {
 	/* temporary pointer */
 	register Sito *xptr = NULL;
+	Sito *stop = NULL;
 
 	/* temporary variables (mean over rows and columns) */
 	short int r[L] = {}, c[L] = {};
@@ -91,32 +64,31 @@ Reticolo::correlator ( void ) {
 	short int *rptr = NULL;
 
 	/* sweep all over lattice */
-	register unsigned short int j;
 	for ( unsigned short int i = 0; i < L; i ++ ) {
 		/* reset correlator */
 		*( corr + i ) = (double) 0;
-
-		/* assign temporary site pointer */
-		xptr = *( x + i );
 
 		/* assign array pointers */
 		rptr = r + i;
 		cptr = c;
 
+		/* assign (stop) temporary site pointer */
+		stop = *( x + i ) + L;
 		/* evaluate means over columns and rows */
-		for ( j = 0; j < L; j ++ ) {
+		for ( xptr = *( x + i ); xptr != stop; xptr ++ ) {
 			/* update means */
 			*rptr += ( *xptr ).s;
-			*cptr += ( *xptr ).s;
 
-			/* update pointers */
-			xptr ++;
+			/* take (i,j)-th site in += j-th column correlator */ 
+			*cptr += ( *xptr ).s;
+			/* update column correlator pointer */
 			cptr ++;
 		}
 	}
 
 	/* correlator pointer */
 	register double *sptr = NULL;
+	register unsigned short int j;
 	/* evaluate correlators */
 	for ( unsigned short int i = 0; i < L; i ++ ) {
 		/* set correlator pointer to t = 0 */
@@ -171,29 +143,6 @@ Reticolo::print_lattice ( void ) {
 //		fprintf( stream, "\n" );
 	}
 } /* -----  end of method Reticolo::print_lattice  ----- */
-
-/*
- * ------------------------------------------------------------------
- *       Class: Reticolo
- *      Method: single_E
- * Description: evaluate single-spin energy
- * ------------------------------------------------------------------
- */
-short int
-Reticolo::single_E ( unsigned int i, unsigned int j ) {
-	/* energy, temporary Sito ptr */
-	short int temp = 0;
-	Sito *xptr = *( x + i ) + j;
-
-	/* sweep over nearest neighbours */
-	for ( unsigned short int a = 0; a < 4; a ++ )
-		temp += Reticolo::S( *( (*xptr).nn + a ) );
-
-	/* multiply by (i,j)-spin */
-	temp *= ( *xptr ).s;
-
-	return - temp;
-} /* -----  end of method Reticolo::single_E  ----- */
 
 /*
  * ------------------------------------------------------------------
