@@ -13,10 +13,10 @@
 #define D	2
 
 /* number of states ( 2 -> Ising; 3 -> Potts ) */
-#define Q	3
+#define Q	2
 
 /* short-cut to extend do Potts model */
-typedef unsigned short int spin;
+typedef signed short int spin;
 
 /*
  * ==================================================================
@@ -38,9 +38,6 @@ class Reticolo {
 		void print_lattice ( void );
 		void print_correlator ( FILE *stream = stdout );
 
-		/* useful constants (not to be evaluated at every cycle) */
-		const long double EB = (long double) 1 - expl( (long double) - 2 * B );
-	
 		static const long int L2 = L * L;
 		static const short unsigned int D2 = 2 * D;
 		static const short unsigned int Q_1 = (short unsigned) Q - 1;
@@ -76,12 +73,6 @@ class Reticolo {
 		
 		/* energy initialized in ctor */
 		long int E = (long int) 0;
-
-		/* return energy of site (i,j) */
-		virtual short int single_E ( unsigned int i, unsigned int j );
-
-		/* evaluate lattice energy */
-		virtual long int energy ( void );
 
 		/* returns spin in *pos */
 		spin S ( const unsigned short int *p = NULL );

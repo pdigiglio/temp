@@ -25,6 +25,9 @@ class Potts: public Reticolo {
 
 		const long double * get_Ms ( void );
 
+		/* useful constants (not to be evaluated at every cycle) */
+		const long double EB = (long double) 1 - expl( (long double) - B );
+
 	protected:
 		/* possible values of magnetization */
 		long double mag[Q][2];

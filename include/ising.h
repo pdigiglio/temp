@@ -26,6 +26,9 @@ class Ising: public Reticolo {
 		double get_Mm ( void );
 		double get_Ms ( void );
 
+		/* useful constants (not to be evaluated at every cycle) */
+		const long double EB = (long double) 1 - expl( (long double) - 2 * B );
+
 	protected:
 		/* current magnetization */
 		long unsigned int M2;
