@@ -253,7 +253,7 @@ Ising::cluster ( unsigned int i, unsigned int j ) {
 		Ms += (long int) ( *xptr ).s;
 
 		/* flip spin */
-		( *xptr ).s *= flip;
+		( *xptr ).s = flip;
 	} while ( tail != head );
 
 	/* update magnetization (max) */
