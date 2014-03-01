@@ -231,7 +231,7 @@ Ising::cluster ( unsigned int i, unsigned int j ) {
 				if ( ( *xptr ).s == ( *( *( x + n ) + m ) ).s ) {
 
 					/* check wether activate bond or not */
-					if ( (long double) rand() / RAND_MAX <= EB ) {
+					if ( (long double) rand() / RAND_MAX <= Ising::EB ) {
 						/* assign (stack) temporary ptr */
 						sptr = *( stack + tail );
 
@@ -337,3 +337,79 @@ Ising::single_E ( unsigned int i, unsigned int j ) {
 
 	return - temp;
 } /* -----  end of method Ising::single_E  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Ising
+ *      Method: correlator
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Ising::correlator ( void ) {
+	/* temporary pointer */
+	register Sito *xptr = NULL;
+	Sito *stop = NULL;
+
+	/* temporary variables (mean over rows and columns) */
+	short int r[L] = {}, c[L] = {};
+	register short int *cptr = NULL;
+	short int *rptr = NULL;
+
+	/* sweep all over lattice */
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* reset correlator */
+		*( corr + i ) = (double) 0;
+
+		/* assign array pointers */
+		rptr = r + i;
+		cptr = c;
+
+		/* assign (stop) temporary site pointer */
+		stop = *( x + i ) + L;
+		/* evaluate means over columns and rows */
+		for ( xptr = *( x + i ); xptr != stop; xptr ++ ) {
+			/* update means */
+			*rptr += ( *xptr ).s;
+
+			/* take (i,j)-th site in += j-th column correlator */ 
+			*cptr += ( *xptr ).s;
+			/* update column correlator pointer */
+			cptr ++;
+		}
+	}
+
+	/* correlator pointer */
+	register double *sptr = NULL;
+	register unsigned short int j;
+	/* evaluate correlators */
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* set correlator pointer to t = 0 */
+		sptr = corr;
+
+		/* reuse old pointers */
+		rptr = r + i;
+		cptr = c + i;
+
+		for ( j = 0; j < L - i; j ++ ) {
+			/* rows */
+			*sptr += *( rptr ) * *( rptr + j );
+			/* columns */
+			*sptr += *( cptr ) * *( cptr + j );
+
+			/* update pointer */
+			sptr ++;
+		}
+
+		for ( j = 0; j < i; j ++ ) {
+			/* rows */
+			*sptr += *( rptr ) * *( r + j );
+			/* columns */
+			*sptr += *( cptr ) * *( c + j );
+
+			/* update pointer */
+			sptr ++;
+		}
+	}
+
+} /* -----  end of method Ising::correlator  ----- */

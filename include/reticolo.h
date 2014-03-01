@@ -32,9 +32,6 @@ class Reticolo {
 		/* return value of 'Reticolo::E' */
 		double get_E ( void );
 
-		/* evaluate correlator */
-		void correlator ( void );
-
 		void print_lattice ( void );
 		void print_correlator ( FILE *stream = stdout );
 

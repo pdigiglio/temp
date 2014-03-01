@@ -21,6 +21,9 @@ class Ising: public Reticolo {
 		/* Swendsen-Wang multi-cluster algorithm */
 		void Sweep ( void );
 
+		/* evaluate correlator */
+		void correlator ( void );
+
 		/* magnetizazions measured in various ways */
 		double get_M2 ( void );
 		double get_Mm ( void );
@@ -31,7 +34,7 @@ class Ising: public Reticolo {
 
 	protected:
 		/* current magnetization */
-		long unsigned int M2;
+//		long unsigned int M2;
 
 		/* magnetizations (max cluster size, sweep) */
 		unsigned long int Mm = 0;
@@ -44,8 +47,7 @@ class Ising: public Reticolo {
 		long int magnetization ( void );
 
 		/* evaluate lattice energy */
-		virtual long int energy ( void );
-
+		long int energy ( void );
 		/* return energy of site (i,j) */
 		short int single_E ( unsigned int i, unsigned int j );
 }; /* -----  end of class Ising  ----- */
@@ -57,11 +59,11 @@ class Ising: public Reticolo {
  * Description: get susceptivity (to be normalized by L2)
  * ------------------------------------------------------------------
  */
-inline double
-Ising::get_M2 ( void ) {
-	/* normalize magnetization (divide by volume) */
-	return (double) Ising::M2;
-} /* -----  end of method Ising::get_M2  ----- */
+//inline double
+//Ising::get_M2 ( void ) {
+//	/* normalize magnetization (divide by volume) */
+//	return (double) Ising::M2;
+//} /* -----  end of method Ising::get_M2  ----- */
 
 /*
  * ------------------------------------------------------------------
