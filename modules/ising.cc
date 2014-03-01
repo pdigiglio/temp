@@ -67,8 +67,19 @@ Ising::Ising ( void ) {
 	/* assign energy */
 	E = Ising::energy();
 
-	fprintf( stderr, "[Potts: %s]\n", __func__ );
+	fprintf( stderr, "[Ising: %s]\n", __func__ );
 } /* -----  end of method Ising::Ising (def. ctor)  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Ising
+ *      Method: ~Ising
+ * Description: destructor
+ * ------------------------------------------------------------------
+ */
+Ising::~Ising (void) {
+	fprintf( stderr, "[Ising: %s]\n", __func__ );
+} /* -----  end of method Ising::~Ising (dtor)  ----- */
 
 /*
  * ------------------------------------------------------------------

@@ -14,7 +14,7 @@
 class Ising: public Reticolo {
 	public:	
 		Ising (void); /* ctor */
-		virtual ~Ising (void) {}; /* dtor */
+		virtual ~Ising (void); /* dtor */
 		
 		/* metropolis system update */
 		void sweep ( void );
@@ -34,14 +34,17 @@ class Ising: public Reticolo {
 		unsigned long int Mm = 0;
 		long int Ms = 0;
 
-		/* return energy of site (i,j) */
-//		short int single_E ( unsigned int i, unsigned int j );
-
 		/* create one cluster */
 		unsigned long int cluster ( unsigned int i, unsigned int j );
 
 		/* evaluate magnetization running all over lattice */
 		long int magnetization ( void );
+
+		/* evaluate lattice energy */
+		virtual long int energy ( void );
+
+		/* return energy of site (i,j) */
+		short int single_E ( unsigned int i, unsigned int j );
 }; /* -----  end of class Ising  ----- */
 
 /*
