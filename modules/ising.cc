@@ -49,7 +49,7 @@ Ising::Ising ( void ) {
 			( *xptr ).s = (spin) ( 2 * ( rand() % 2 ) - 1 );
 
 			/* assign nearest neighbours */
-			for ( a = 0; a < 4; a ++ ) {	
+			for ( a = 0; a < Reticolo::D2; a ++ ) {	
 				/* assign (displacement) temporary pointer */
 				sptr = *( s + a );
 				nn = *( ( *xptr ).nn + a );
@@ -213,7 +213,7 @@ Ising::cluster ( unsigned int i, unsigned int j ) {
 		xptr = *( x + i ) + j;
 
 		/* sweep over nearest neighbours */
-		for ( a = 0; a < 4; a ++ ) {
+		for ( a = 0; a < Reticolo::D2; a ++ ) {
 			/* assign nearest neighbour coordinate */
 			nnptr = *( ( *xptr ).nn + a );
 
@@ -329,7 +329,7 @@ Ising::single_E ( unsigned int i, unsigned int j ) {
 	Sito *xptr = *( x + i ) + j;
 
 	/* sweep over nearest neighbours */
-	for ( unsigned short int a = 0; a < 4; a ++ )
+	for ( unsigned short int a = 0; a < Reticolo::D2; a ++ )
 		temp += Reticolo::S( *( (*xptr).nn + a ) );
 
 	/* multiply by (i,j)-spin */
