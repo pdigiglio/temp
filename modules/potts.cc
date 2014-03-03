@@ -358,10 +358,8 @@ Potts::energy ( void ) {
 	for ( unsigned short int i = 0; i < L; i += 2 ) {
 		for ( j = 0; j < L; j ++ ) {
 			ene += Potts::single_E( i, j );
-//			printf( "%u %u %d\n", i, j, Potts::single_E(i, j) );
 			/* translater lattice */
 			ene += Potts::single_E( i1, ++ j );
-//			printf( "%u %u %d\n", i, j, Potts::single_E(i, j) );
 		}
 
 		i1 += 2;
@@ -369,3 +367,115 @@ Potts::energy ( void ) {
 
 	return ene;
 } /* -----  end of method Potts::energy  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Potts
+ *      Method: correlator
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+void
+Potts::correlator ( void ) {
+	/* temporary pointer */
+	register Sito *xptr = NULL;
+
+	/* temporary variables (mean over rows and columns) */
+	double r[L][2] = {}, c[L][2] = {};
+	register double *cptr = NULL;
+	register long double *mptr = NULL;
+	double *rptr = NULL;
+
+	/* sweep all over lattice */
+	register unsigned short int j;
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* reset correlator */
+		*( corr + i ) = (double) 0;
+
+		/* assign site pointer */
+		xptr = *( x + i );
+
+		/* assign rows array pointer */
+		rptr = *( r + i );
+
+		/* evaluate means over columns and rows */
+		for ( j = 0; j < L; j ++ ) {
+			/* assign columns array pointer */
+			cptr = *( c + j );
+
+			/* assign magnetization pointer */
+			mptr = *( mag + ( *xptr ).s );
+			
+			/*-------------------------------------------------------
+			 *  UPDATE MEANS
+			 *-----------------------------------------------------*/
+			
+			/* row correlator */
+			*rptr += *mptr; // real pt
+			/* take (i,j)-th site in += j-th column correlator */ 
+			*cptr += *mptr; // real pt
+
+			/* row correlator */
+			*( rptr + 1 ) += *( ++ mptr ); // cplx pt
+			/* take (i,j)-th site in += j-th column correlator */ 
+			*( ++cptr ) += *mptr; // cplx pt
+
+			/* update site ptr */
+			xptr ++;
+		}
+	}
+
+	/* correlator pointer */
+	register double *sptr = NULL;
+
+	/* auxiliary pointers */
+	register double *ptmp = NULL;
+	double *cptr1 = NULL, *rptr1 = NULL;
+	
+	/* evaluate correlators */
+	for ( unsigned short int i = 0; i < L; i ++ ) {
+		/* set correlator pointer to t = 0 */
+		sptr = corr;
+
+		/* reuse old pointers */
+		rptr = *( r + i );
+		rptr1 = rptr + 1;
+
+		cptr = *( c + i );
+		cptr1 = cptr + 1;
+
+		for ( j = 0; j < L - i; j ++ ) {
+			/* rows */
+			ptmp = *( r + i + j );
+
+			*sptr += *( rptr ) * *( ptmp );
+			*sptr += *( rptr1 ) * *( ++ ptmp );
+
+			/* columns */
+			ptmp = *( c + i + j );
+
+			*sptr += *( cptr ) * *( ptmp );
+			*sptr += *( cptr1 ) * *( ++ ptmp );
+
+			/* update pointer */
+			sptr ++;
+		}
+
+		for ( j = 0; j < i; j ++ ) {
+			/* rows */
+			ptmp = *( r + j );
+
+			*sptr += *( rptr ) * *( ptmp );
+			*sptr += *( rptr1 ) * *( ++ ptmp );
+
+			/* columns */
+			ptmp = *( c + j );
+
+			*sptr += *( cptr ) * *( ptmp );
+			*sptr += *( cptr1 ) * *( ++ ptmp );
+
+			/* update pointer */
+			sptr ++;
+		}
+	}
+} /* -----  end of method Potts::correlator  ----- */

@@ -27,6 +27,9 @@ class Potts: public Reticolo {
 		/* Swendsen-Wang multi-cluster algorithm */
 		void Sweep ( void );
 
+		/* evaluate correlator */
+		void correlator ( void );
+
 		/* return magnetization (sweep) */
 		const long double * get_Ms ( void );
 
