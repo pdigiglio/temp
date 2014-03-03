@@ -5,6 +5,9 @@
 /* base class */
 #include "reticolo.h"
 
+/* number of states ( 2 -> Ising; 3 -> Potts ) */
+#define Q	2
+
 /*
  * ==================================================================
  *        Class: Potts
@@ -14,7 +17,7 @@
 class Potts: public Reticolo {
 	public:	
 		Potts (void); /* ctor */
-		virtual ~Potts (void) {}; /* dtor */
+		virtual ~Potts (void); /* dtor */
 
 		long int energy ( void );
 

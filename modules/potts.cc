@@ -97,6 +97,17 @@ Potts::Potts (void) {
 /*
  * ------------------------------------------------------------------
  *       Class: Potts
+ *      Method: ~Potts
+ * Description: destructor
+ * ------------------------------------------------------------------
+ */
+Potts::~Potts (void) {
+	fprintf( stderr, "[Potts: %s]\n", __func__ );
+} /* -----  end of method Potts::~Potts (dtor)  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Potts
  *      Method: single_E
  * Description: 
  * ------------------------------------------------------------------
@@ -293,7 +304,7 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 				if ( ( *xptr ).s == ( *( *( x + n ) + m ) ).s ) {
 
 					/* check wether activate bond or not */
-					if ( (long double) rand() / RAND_MAX <= Reticolo::EB ) {
+					if ( (long double) rand() / RAND_MAX <= Potts::EB ) {
 						/* assign (stack) temporary pinter */
 						sptr = *( stack + tail );
 

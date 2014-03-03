@@ -12,8 +12,6 @@
 /* dimension */
 #define D	2
 
-/* number of states ( 2 -> Ising; 3 -> Potts ) */
-#define Q	2
 
 /* short-cut to extend do Potts model */
 typedef signed short int spin;
@@ -50,7 +48,7 @@ class Reticolo {
 		typedef struct sito Sito;
 
 		/* auxiliary array to check nearest neighbours */
-		const signed short int s[2 * D][D] = {
+		const signed short int s[D2][D] = {
 			{ 0, 1 }, { 1, 0 },
 			{ 0, -1 }, { -1, 0 }
 		};
