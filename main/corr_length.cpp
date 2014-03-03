@@ -24,10 +24,11 @@
 #include <errno.h>
 #include <string.h>
 
+#include "side.h"
 #include "round.h"
 
 /* columns */
-#define C	5
+const signed long int C = L / 2;
 
 int
 main ( int argc, char *argv[] ) {
