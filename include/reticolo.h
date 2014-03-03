@@ -29,6 +29,10 @@ class Reticolo {
 		/* return value of 'Reticolo::E' */
 		double get_E ( void );
 
+		/* return value of improved magnetizations */
+		double get_M2 ( void );
+		double get_Mm ( void );
+
 		void print_lattice ( void );
 		void print_correlator ( FILE *stream = stdout );
 
@@ -67,6 +71,11 @@ class Reticolo {
 		/* energy initialized in ctor */
 		long int E = (long int) 0;
 
+		/* sum of square magnetization */
+		unsigned long int M2 = 0;
+		/* magnetizations */
+		unsigned long int Mm = 0;
+
 		/* returns spin in *pos */
 		spin S ( const unsigned short int *p = NULL );
 }; /* -----  end of class Reticolo  ----- */
@@ -82,6 +91,31 @@ inline double
 Reticolo::get_E ( void ) {
 	return (double) Reticolo::E;
 } /* -----  end of method Reticolo::get_E  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: get_M2
+ * Description: get susceptivity (to be normalized by L2)
+ * ------------------------------------------------------------------
+ */
+inline double
+Reticolo::get_M2 ( void ) {
+	/* normalize magnetization (divide by volume) */
+	return (double) Reticolo::M2;
+} /* -----  end of method Reticolo::get_M2  ----- */
+
+/*
+ * ------------------------------------------------------------------
+ *       Class: Reticolo
+ *      Method: get_Mm
+ * Description: 
+ * ------------------------------------------------------------------
+ */
+inline double
+Reticolo::get_Mm ( void ) {
+	return (double) Mm;
+} /* -----  end of method Reticolo::get_Mm  ----- */
 
 /*
  * ------------------------------------------------------------------
