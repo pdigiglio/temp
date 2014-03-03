@@ -12,7 +12,6 @@
 /* dimension */
 #define D	2
 
-
 /* short-cut to extend do Potts model */
 typedef signed short int spin;
 
@@ -35,7 +34,6 @@ class Reticolo {
 
 		static const long int L2 = L * L;
 		static const short unsigned int D2 = 2 * D;
-		static const short unsigned int Q_1 = (short unsigned) Q - 1;
 		
 	protected:
 
