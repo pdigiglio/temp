@@ -178,7 +178,7 @@ Potts::sweep ( void ) {
 
 		for ( ; xptr != xstop; xptr ++ ) {
 			/* new state proposed */
-			sn = (*xptr).s + ( rand() % Reticolo::Q_1 );
+			sn = (*xptr).s + ( rand() % Potts::Q_1 );
 			sn = ( ++ sn ) % Q;
 
 			/* (maybe) change spin */
@@ -208,6 +208,8 @@ Potts::Sweep ( void ) {
 
 	/* reset magnetization */
 	*( Ms ) = *( Ms + 1 ) = (long double) 0;
+	M2 = (long double) 0;
+	Mm = (long double) 0;
 
 	for ( unsigned short int i = 0; i < L; i ++ ) {
 		/* assign temporary variable */
@@ -216,7 +218,7 @@ Potts::Sweep ( void ) {
 		for ( j = 0; j < L; j ++ ) {
 			/* if spin had not been visited yet */
 			if ( *( c ) == ckd_status )
-				Potts::cluster( i, j );
+				M2 += Potts::cluster( i, j );
 
 			/* update pointer */
 			c ++;
@@ -242,7 +244,6 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 	/* new spin value (flip = { 0,1,...,Q }) */
 	spin flip = (spin) ( rand() % Q );
 
-
 	/*---------------------------------------------------------------
 	 *  INITIALIZE CLUSTER SCTRUCTURES
 	 *-------------------------------------------------------------*/
@@ -264,15 +265,15 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 	 *-------------------------------------------------------------*/
 
 	/* nearest neighbours counter */
-	unsigned short int a;
+	register unsigned short int a;
 	/* position indexes */
 	unsigned short int n, m;
 	/* cluster size */
-//	unsigned long int size = (long int) 0;
+	unsigned long int size = (long int) 0;
 
 	/* temporary pointers */
 	unsigned short int *sptr = NULL;
-	unsigned short int *nnptr = NULL;
+	register unsigned short int *nnptr = NULL;
 	Sito *xptr = NULL;
 
 	/*---------------------------------------------------------------
@@ -288,7 +289,7 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 		xptr = *( x + i ) + j;
 
 		/* sweep over nearest neighbours */
-		for ( a = 0; a < 4; a ++ ) {
+		for ( a = 0; a < Reticolo::D2; a ++ ) {
 			/* assign nearest neighbour coordinate */
 			nnptr = *( ( *xptr ).nn + a );
 
@@ -324,7 +325,7 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 		}
 
 		/* update size */
-//		size ++;
+		size ++;
 
 		/* update magnetization (sweep) */
 		Potts::update_Ms( xptr );
@@ -334,9 +335,9 @@ Potts::cluster ( unsigned int i, unsigned int j ) {
 	} while ( tail != head );
 
 	/* update magnetization (max) */
-//	Mm = ( size > Mm ? size : Mm );
+	Mm = ( size > Mm ? size : Mm );
 
-	return 0; // size * size;
+	return size * size;
 } /* -----  end of method Potts::cluster  ----- */
 
 /*

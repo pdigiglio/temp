@@ -6,7 +6,7 @@
 #include "reticolo.h"
 
 /* number of states ( 2 -> Ising; 3 -> Potts ) */
-#define Q	2
+#define Q	3
 
 /*
  * ==================================================================
@@ -19,6 +19,7 @@ class Potts: public Reticolo {
 		Potts (void); /* ctor */
 		virtual ~Potts (void); /* dtor */
 
+		/* evaluate lattice energy */
 		long int energy ( void );
 
 		/* metropolis system update */
@@ -26,11 +27,12 @@ class Potts: public Reticolo {
 		/* Swendsen-Wang multi-cluster algorithm */
 		void Sweep ( void );
 
+		/* return magnetization (sweep) */
 		const long double * get_Ms ( void );
 
 		/* useful constants (not to be evaluated at every cycle) */
-		static const long double EB = (long double) 1 - expl( (long double) - B );
-		static const short unsigned int Q_1 = (short unsigned) Q - 1;
+		const short unsigned int Q_1 = (short unsigned) Q - 1;
+		const long double EB = (long double) 1 - expl( (long double) - B );
 
 	protected:
 		/* possible values of magnetization */
@@ -90,4 +92,5 @@ inline spin
 Potts::rand_init_val ( void ) {
 	return (spin) ( rand() % (unsigned) Q ); // Potts or higher
 } /* -----  end of method Potts::rand_init_val  ----- */
+
 #endif   /* ----- #ifndef potts_INC  ----- */
