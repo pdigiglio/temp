@@ -51,7 +51,7 @@ Potts::Potts (void) {
 			( *xptr ).s = Potts::rand_init_val();
 
 			/* assign nearest neighbours */
-			for ( a = 0; a < 4; a ++ ) {	
+			for ( a = 0; a < Reticolo::D2; a ++ ) {	
 				/* assign (displacement) temporary pointer */
 				sptr = *( s + a );
 				nn = *( ( *xptr ).nn + a );
@@ -77,18 +77,20 @@ Potts::Potts (void) {
 	/* temporary pointer */
 	long double *mptr = NULL;
 	/* temporary angle */
-	long double theta;
+	long double theta_0 = (long double) 2 * M_PI / Q;
+	long double theta = (long double) 0;
 
 	/* assign possible values of magnetization */
 	for ( unsigned short int q = 0; q < Q; q ++ ) {
 		/* assign temporary pointer */
 		mptr = *( mag + q );
-		/* assign angle */
-		theta = (long double) 2 * M_PI * q / Q;
 
 		/* assign values */
 		*mptr = cosl( theta );
 		*( ++ mptr ) = sinl ( theta );
+
+		/* update angle */
+		theta += (long double) theta_0;
 	}
 
 	fprintf( stderr, "[Potts: %s]\n", __func__ );
