@@ -4,7 +4,7 @@ if( ! ( exists( "fn" ) ) ) {
 	quit
 }
 
-print "[`tput setaf 6`GNUplot`tput sgr0`] Bin >> processing: '".fn.".dat'"
+print "[`tput setaf 6`GNUplot`tput sgr0`] `tput setaf 4`binning`tput sgr0` >> processing: '".fn.".dat'"
 
 set grid
 

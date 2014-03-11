@@ -17,10 +17,12 @@
 #      REVISION:  ---
 #===============================================================================
 
-set -o nounset                              # Treat unset variables as an error
+set -o nounset     # Treat unset variables as an error
 
+# Limite di binning
+bin_lim=80
 # Temperature
-B=.2
+B=1.023
 # Lattice side
-side=200
-tdir="./B_${B}"
+side=500
+tdir="./potts/L${side}/B_${B}/"

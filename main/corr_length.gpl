@@ -1,7 +1,12 @@
 # Numero di colonne da processare
-cols = 5
+cols = 250
+
+set terminal pngcairo size 700,500 enhanced font 'Verdana,10'
 
 # Varianza
-#plot for [i=1:cols] "./cl_binning.dat" using 1:(column( 2 * i + 1 )) with lp title sprintf( "tempo: %u", i )
+set output "cl_binning_var.png"
+plot for [i=2:cols] "./cl_binning.dat" using 1:(column( 2 * i + 1 )) with lp title sprintf( "tempo: %u", i )
+
 # Deviazione sulla media
-plot for [i=1:cols] "./cl_binning.dat" using 1:(column( 4 * i + 1 )) with lp title sprintf( "tempo: %u", i )
+set output "cl_binning_sdom.png"
+plot for [i=2:cols] "./cl_binning.dat" using 1:(column( 4 * i + 1 )) with lp title sprintf( "tempo: %u", i )

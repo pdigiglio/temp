@@ -39,8 +39,12 @@ CV=cv
 ./susc energia.dat > ${CV}.dat
 
 
+# Plot magnetization dispersion
+gnuplot -e "filename='mag_sweep'" mag_sweep_potts.gpl
+mv mag_sweep.{dat,png} --target-directory=${tdir}
+
 # Observable analysis
-for file in energia mag_sweep_abs mag_sweep ${SUS}_sweep ${CV} ${SUS}_cluster mag_cluster
+for file in energia mag_sweep_abs mag_cluster ${SUS}_sweep ${CV} ${SUS}_cluster sus_improved
 do
 	echo "[`tput setaf 4`${file}`tput sgr0`: `tput setaf 3`auto-correlator`tput sgr0`]"
 	./analisi ${file}.dat
@@ -49,11 +53,11 @@ do
 	# Generate plot
 	gnuplot -e "fn='${file}'" plot.gpl
 	# Generate histogram
-	gnuplot -e "filename='${file}';bins='80'" histogram.gpl
+	gnuplot -e "filename='${file}';bins='100'" histogram.gpl
 
 
 	echo "[`tput setaf 3`binning`tput sgr0`]"
-	./binning ${file}.dat 70 > bin_${file}.dat
+	./binning ${file}.dat ${bin_lim} > bin_${file}.dat
 
 	# Generate plot
 	gnuplot -e "fn='bin_${file}'" binning.gpl
@@ -74,9 +78,9 @@ echo "[`tput setaf 4`corr_length`tput sgr0`]"
 make corr_length
 
 # correlation length binning
-for (( i = 1; i < 70; i ++ ))
+for (( i = 1; i < ${bin_lim}; i ++ ))
 do
-	echo "[`tput setaf 4`corr_length`tput sgr0`] binning >> ${i} / 70"
+	echo "[`tput setaf 4`corr_length`tput sgr0`] binning >> ${i} / ${bin_lim}"
 	./corr_length corr.dat ${i}
 done
 
