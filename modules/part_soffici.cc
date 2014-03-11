@@ -19,7 +19,6 @@
  * ------------------------------------------------------------------
  */
 Soft::Soft (void) {
-	
 	/* stampo a schermo informazioni (n. particelle, raggio) */
 	fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET "] "
 			"Number :: radius of particles (with N = %u) >> %lu :: %.2g sigma\n",
@@ -307,8 +306,8 @@ Soft::set_energy ( double ene ) {
 
 		fprintf( stderr, "[" ANSI_BLUE "info" ANSI_RESET ": "
 						ANSI_YELLOW "%s" ANSI_RESET
-						"] Kinetic energy per particle shifted from %g to %g.\n",
-						__func__, K, K_new );
+						"] Energy per particle shifted from %g to %g.\n",
+						__func__, Particella::K + Particella::U, ene );
 
 		/* reassign kinetic energy */
 		K = K_new;
@@ -365,17 +364,19 @@ Soft::set_kT ( double kT ) {
  */
 void
 Soft::scale_velocity ( double scale ) {
-	/* rescale velocities */
-	register unsigned int i;
-	register unsigned short int d;
+	/* temporary pointers */
+	register double *vptr = NULL;
+	double *vstop = NULL;
 
-	struct ptcl *pi;
 	/* run over all particles */
+	register unsigned int i;
 	for ( i = 0; i < Particella::nMax; i ++ ) {
-		pi = p + i;
+		/* assign control cycle variables */
+		vptr = ( *( p + i ) ).v;
+		vstop = vptr + D;
 	
-		for ( d = 0; d < D; d ++ )
-			*( (*pi).v + d ) = *( (*pi).v + d ) * scale;
+		for ( ; vptr != vstop; vptr ++ )
+			*( vptr ) *= scale;
 	}
 } /* -----  end of method Soft::scale_velocity  ----- */
 
