@@ -6,7 +6,7 @@
 #include "dimensions.h"
 
 /* number of particles per side */
-#define N	4
+#define N	8
 
 #ifndef  particella_INC
 #define  particella_INC
@@ -62,7 +62,11 @@ class Particella {
 			double t_last = (double) 0;
 		} p[ nMax ];// = NULL;
 
+		/* array to evaluate root mean square radius */
 		double r[nMax][D] = {};
+		/* temporary array to evaluate distance */
+		double rtmp[D];
+
 		/* mean square radius */
 		double R2M = (double) 0;
 
@@ -76,19 +80,13 @@ class Particella {
 
 		/* pressure temporary variable */
 		double pr = (double) 0;
-
-		/* Scalar product between two vectors, a and b, in D dimensions */
-		double sp ( const double *a, const double *b );
-		
 		/* system time, updated at each evolution */
 		double tm = (double) 0;
 
-		/*
-		 * The same as above: if only 'a' is given, it returns his
-		 * square modulus
-		 */
+		/* Scalar product between two vectors, a and b, in D dimensions */
+		double sp ( const double *a, const double *b );
+		/* if only 'a' is given, it returns his square modulus */
 		double sp ( const double *a );
-
 		/* returns distance between particles 'i' and 'j' */
 		double distance( unsigned int i, unsigned int j );
 }; /* -----  end of class Particella  ----- */
@@ -187,8 +185,11 @@ Particella::get_velocity ( unsigned int n, unsigned short int d ) {
  */
 inline double
 Particella::sp ( const double *a, const double *b ) {
-	double tmp = (double) 0;
-	for ( unsigned short int d = 0; d < D; d ++ )
+	/* evaluate product of first components */
+	double tmp = (double) *( a ) * *( b );
+
+	/* evaluate remaining components contribute */
+	for ( unsigned short int d = 1; d < D; d ++ )
 		tmp += *( a + d ) * *( b + d );
 
 	return tmp;
@@ -228,13 +229,19 @@ Particella::~Particella ( void ) {
  */
 inline double
 Particella::distance ( unsigned int i, unsigned int j ) {
-	double r[D];
-	for ( unsigned int d = 0; d < D; d ++ ) {
-		*( r + d ) = *( (*(p + i)).x + d ) - *( (*(p + j)).x + d );
-		*( r + d ) -= round( *( r + d ) );
+	/* temporary variables */
+	double *pix = ( *( p + i ) ).x, *pjx = ( *( p + j ) ).x;
+
+	for ( register double *rptr = rtmp; rptr != rtmp + D; rptr ++ ) {
+		/* evaluate distance */
+		*( rptr ) = *( pix ++ ) - *( pjx ++ );
+		*( rptr ) -= round( *( rptr ) );
+
+		/* update pointer */
+//		pix ++; pjx ++;
 	}
 
-	return sqrt( Particella::sp( r ) );
+	return sqrt( Particella::sp( rtmp ) );
 } /* -----  end of method Particella::distance  ----- */
 
 /*
