@@ -19,4 +19,4 @@
 
 set -o nounset                              # Treat unset variables as an error
 
-head --lines=${1} ${2} | tail --lines 1
+sed -e "/^#/d" ${2} | head --lines=${1} | tail --lines=1
