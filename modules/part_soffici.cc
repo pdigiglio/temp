@@ -116,19 +116,22 @@ Soft::Soft (void) {
  */
 double
 Soft::evolve ( void ) {
-	/* vector radius connecting particles, modulus, mean modulus, pressure (temporary) */
+	/* vector radius connecting particles, modulus, mean modulus */
 	double r_ij[D], rtemp, rmod, rmean = (double) 0;
+	double *rptr = NULL;
+
 	/* temporary variable for force, pressure (temporary) */
 	double f, pt = (double) 0;
-	/* temporary particle pointers */
-	struct ptcl *pi, *pj;
-	double *ri;
 
-	/* run over all particles */
-	register unsigned int j;
-	register unsigned short int d;
+	/* temporary particle pointers */
+	struct ptcl *pi = NULL, *pstop = p + Particella::nMax;
+	register struct ptcl *pj = NULL;
+	register double *tmp1 = NULL, *tmp2 = NULL;
+	double *ri = NULL;
+
 	/* internal energy */
 	register double internal = (double) 0;
+
 	/* kinetic energy, acceleration */
 	double kinetic = (double) 0, a, *pivd = NULL;
 
@@ -136,16 +139,18 @@ Soft::evolve ( void ) {
 		pi = p + i;
 		ri = *( r + i );
 
-		for ( j = i + 1; j < Particella::nMax; j ++ ) {
-			pj = p + j;
+		for ( pj = pi + 1; pj != pstop; pj ++ ) {
+			/* assign temporary pointers */
+			tmp1 = ( *pj ).x;
+			tmp2 = ( *pi ).x;
 
 			/* evaluate distance */
-			for ( d = 0; d < D; d ++ ) {
+			for ( rptr = r_ij; rptr != r_ij + D; rptr ++ ) {
 				/* r_ij = r_j - r_i */
-				*( r_ij + d ) = *( (*pj).x + d ) - *( (*pi).x + d );
+				*( rptr ) = *( tmp1 ++ ) - *( tmp2 ++ );
 				
 				/* rescale distance within the box */
-				*( r_ij + d ) -= (double) Soft::L * round( *( r_ij + d ) / Soft::L );
+				*( rptr ) -= (double) Soft::L * round( *( rptr ) / Soft::L );
 			}
 
 			/* take distance between i-th and j-th particle */
@@ -161,17 +166,25 @@ Soft::evolve ( void ) {
 			pt += f * rmod;
 			/* scale force */
 			f /= rmod;
+
+			/* re-assign temporary pointers */
+			tmp1 = ( *pj ).a;
+			tmp2 = ( *pi ).a;
 			
 			/* assign accelerations */
-			for ( d = 0; d < D; d ++ ) {
-				*( (*pi).a + d ) -= f * *( r_ij + d );
-				*( (*pj).a + d ) += f * *( r_ij + d );
+			for ( rptr = r_ij; rptr != r_ij + D; rptr ++ ) {
+				*( tmp2 ++ ) -= f * *( rptr );
+				*( tmp1 ++ ) += f * *( rptr );
 			}
 		}
 
-		for ( d = 0; d < D; d ++ ) {
+		/* re-assign temporary pointers */
+		tmp1 = ( *pi ).a;
+		tmp2 = ( *pi ).x;
+
+		for ( unsigned short int d = 0; d < D; d ++ ) {
 			/* assign temporary variables */
-			a = (double) *( (*pi).a + d ) * dt / 2;
+			a = (double) *( tmp1 ) * dt / 2;
 			pivd = (*pi).v + d;
 
 			/* evolve */
@@ -181,17 +194,17 @@ Soft::evolve ( void ) {
 			kinetic += *( pivd ) * *( pivd );
 			
 			/* move particle */
-			*( (*pi).x + d ) += *( pivd ) * dt + a * dt;
+			*( tmp2 ) += *( pivd ) * dt + a * dt;
 
 			/* evaluate mean square modulus */
-			rtemp = *( (*pi).x + d ) - *( ri + d );
+			rtemp = *( tmp2 ++ ) - *( ri + d );
 			rtemp -= (double) Soft::L * round( rtemp / Soft::L );
 			R2M += rtemp * rtemp;
 
 			*pivd += a;
 
 			/* reset acceleration */
-			*( (*pi).a + d ) = (double) 0;
+			*( tmp1 ++ ) = (double) 0;
 		}
 	}
 
