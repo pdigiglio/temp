@@ -3,7 +3,7 @@
 #
 
 # Main file to compile
-MAIN	= ising_potts #lennard_jones #free_part
+MAIN	= lennard_jones # ising_potts #free_part
 # Data analysis
 ANALISI	= analisi corr_length binning
 # Fit
@@ -16,10 +16,10 @@ COMMON	= round info_time
 MODULES	= $(COMMON)
 
 # Molecular dynamics
-#MODULES += particella part_soffici # part_libere
+MODULES += particella part_soffici # part_libere
 
 # Ising/Potts model
-MODULES	+= reticolo ising potts
+#MODULES	+= reticolo ising potts
 
 .PHONY: all distclean clean
 
@@ -150,8 +150,8 @@ cut: cut.o round.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
 
 # Produce executables
-mkxeq: $(MAIN)
+#mkxeq: $(MAIN)
 
 # make dependencies
-mkdep: $(addsuffix .d,$(MODULES) $(MAIN))
-	@echo ""
+#mkdep: $(addsuffix .d,$(MODULES) $(MAIN))
+#	@echo ""
