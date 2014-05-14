@@ -21,7 +21,7 @@ MODULES += particella part_soffici # part_libere
 # Ising/Potts model
 #MODULES	+= reticolo ising potts
 
-.PHONY: all distclean clean
+.PHONY: all distclean clean dist
 
 # Default rule
 all: $(MAIN)
@@ -148,6 +148,17 @@ $(MISC): %: %.o
 
 cut: cut.o round.o
 	$(CXX) $^ -o $@ $(CXXFLAGS)
+
+# FIXME
+# Compress project
+nome=lab-calcolo
+#$(addsuffix $(shell date "+%y-%m-%d"),$(nome))
+$(addsuffix .tar.xz,$(nome))
+dist: distclean
+	@echo "[archive] tar -cvaf `tput bold`$(nome)`tput sgr0` --exclude-vcs $(IDIR)/ $(MDIR)/"
+	tar -cvaf $(nome) --exclude-vcs $(IDIR)/ $(MDIR)/
+
+
 
 # Produce executables
 #mkxeq: $(MAIN)
